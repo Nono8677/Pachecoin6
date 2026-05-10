@@ -1,9 +1,9 @@
 ‘use strict’;
 
-/* ——————————————————————————————————————————————————————————————————————————
+/*
 
 1. MODULE PORTFOLIO
-   —————————————————————————————————————————————————————————————————————————— */
+   */
    const portfolio = {
    state: (function() {
    try {
@@ -48,9 +48,9 @@ getDisplayData: function(asset, tf) {
 
 };
 
-/* ——————————————————————————————————————————————————————————————————————————
+/*
 2. AUTHENTICATION & SESSION
-—————————————————————————————————————————————————————————————————————————— */
+*/
 const SUPABASE_URL  = ‘https://ikcxcotbyrztngawbwro.supabase.co’;
 const SUPABASE_ANON = ‘eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrY3hjb3RieXJ6dG5nYXdid3JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNzU3MDQsImV4cCI6MjA5Mzc1MTcwNH0.pUV8iAY7nUI1mGtv_DO-36fMLPOKfMM6oVydgowtdgM’;
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -101,9 +101,9 @@ document.getElementById(‘main-app’).style.display    = ‘none’;
 }
 });
 
-/* ——————————————————————————————————————————————————————————————————————————
+/*
 3. CONFIGURATION
-—————————————————————————————————————————————————————————————————————————— */
+*/
 const CONFIG = {
 pairs: [‘BTCUSDT’, ‘ETHUSDT’, ‘SOLUSDT’, ‘BNBUSDT’],
 utBot: { keyValue: 2, atrPeriod: 10 },
@@ -120,9 +120,9 @@ timeframes: [
 const BINANCE_BASE = ‘https://api.binance.com/api/v3’;
 let state = { signals: {}, livePrices: {}, selectedTf: ‘1d’, currentPair: ‘BTCUSDT’ };
 
-/* ——————————————————————————————————————————————————————————————————————————
+/*
 4. INDICATEURS TECHNIQUES
-—————————————————————————————————————————————————————————————————————————— */
+*/
 function getATR(h, l, c, p) {
 const tr = c.map(function(v, i) {
 return i === 0 ? 0 : Math.max(h[i]-l[i], Math.abs(h[i]-c[i-1]), Math.abs(l[i]-c[i-1]));
@@ -200,9 +200,9 @@ if (c[i-1] >= sL && c[i] < sL) { bosType = ‘bear’; sl = sH; tp = c[i] - (sH 
 return { bosType: bosType, sl: sl, tp: tp };
 }
 
-/* ——————————————————————————————————————————————————————————————————————————
+/*
 5. PRIX LIVE
-—————————————————————————————————————————————————————————————————————————— */
+*/
 async function fetchLivePrices() {
 try {
 const res  = await fetch(BINANCE_BASE + ‘/ticker/price’);
@@ -224,9 +224,9 @@ el.innerText = state.livePrices[pair].toLocaleString(‘en-US’, { minimumFract
 });
 }
 
-/* ——————————————————————————————————————————————————————————————————————————
-6. ANALYSE — INDEX -2 STRICT (bougie non cloturee exclue)
-—————————————————————————————————————————————————————————————————————————— */
+/*
+6. ANALYSE - INDEX -2 STRICT (bougie non cloturee exclue)
+*/
 async function startAnalysis() {
 document.getElementById(‘last-update’).innerText = ‘Analyse…’;
 for (let si = 0; si < CONFIG.pairs.length; si++) {
@@ -272,9 +272,9 @@ document.getElementById('last-update').innerText = 'A jour : ' + new Date().toLo
 
 }
 
-/* ——————————————————————————————————————————————————————————————————————————
-7. RENDU UI — indicateurs internes masques
-—————————————————————————————————————————————————————————————————————————— */
+/*
+7. RENDU UI - indicateurs internes masques
+*/
 function renderSignals() {
 const container = document.getElementById(‘signals-container’);
 container.innerHTML = CONFIG.pairs.map(function(s) {
@@ -332,9 +332,9 @@ refreshPortfolio(pair);
 document.querySelector(’[data-tab=“tab-portfolio”]’).click();
 };
 
-/* ——————————————————————————————————————————————————————————————————————————
+/*
 8. COUNTDOWN
-—————————————————————————————————————————————————————————————————————————— */
+*/
 function updateCountdown() {
 const now  = new Date();
 const unit = state.selectedTf === ‘1h’ ? 3600000 : (state.selectedTf === ‘4h’ ? 14400000 : 86400000);
@@ -346,9 +346,9 @@ const el = document.getElementById(‘countdown’);
 if (el) el.innerText = h + ‘:’ + m + ‘:’ + s;
 }
 
-/* ——————————————————————————————————————————————————————————————————————————
+/*
 9. INITIALISATION
-—————————————————————————————————————————————————————————————————————————— */
+*/
 let appInitialized = false;
 function initApp() {
 if (appInitialized) return;
