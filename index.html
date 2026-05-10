@@ -1,6 +1,4 @@
-
 <!DOCTYPE html>
-
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -10,8 +8,6 @@
 </head>
 <body>
 
-<!-- ÉCRAN AUTH -->
-
 <div id="auth-screen">
     <h1 class="logo-pache">PACHECOIN</h1>
     <div class="auth-card">
@@ -19,21 +15,22 @@
             <button class="auth-tab active" onclick="showTab('login')">Connexion</button>
             <button class="auth-tab" onclick="showTab('signup')">Inscription</button>
         </div>
+
         <div id="tab-login">
             <input id="login-email" type="email" placeholder="Email" autocomplete="email">
             <input id="login-pwd" type="password" placeholder="Mot de passe" autocomplete="current-password">
             <button class="auth-btn" onclick="handleLogin()">SE CONNECTER</button>
         </div>
+
         <div id="tab-signup" style="display:none;">
             <input id="signup-email" type="email" placeholder="Email" autocomplete="email">
             <input id="signup-pwd" type="password" placeholder="Mot de passe (6 caractères min)" autocomplete="new-password">
             <button class="auth-btn" onclick="handleSignup()">CRÉER UN COMPTE</button>
         </div>
+
         <p id="auth-message"></p>
     </div>
 </div>
-
-<!-- APPLI PRINCIPALE -->
 
 <div id="main-app" style="display:none;">
     <header>
@@ -43,34 +40,56 @@
         <button id="logout-btn" onclick="handleLogout()">Déconnexion</button>
     </header>
 
-```
-<nav class="tabs">
-    <button class="nav-tab active" data-tab="tab-signals">📊 Signaux</button>
-    <button class="nav-tab" data-tab="tab-portfolio">💼 Portfolio</button>
-</nav>
+    <nav class="tabs">
+        <button class="nav-tab active" data-tab="tab-signals">📊 Signaux</button>
+        <button class="nav-tab" data-tab="tab-portfolio">💼 Portfolio</button>
+    </nav>
 
-<main>
-    <section id="tab-signals" class="tab-content active">
-        <div class="controls">
-            <button id="refresh-btn">↻</button>
-            <select id="signal-tf-select"></select>
-        </div>
-        <div id="signals-container"></div>
-    </section>
-    <section id="tab-portfolio" class="tab-content">
-        <div id="portfolio-container"></div>
-    </section>
-</main>
+    <main>
+        <section id="tab-signals" class="tab-content active">
+            <div class="controls">
+                <button id="refresh-btn">↻</button>
+                <select id="signal-tf-select"></select>
+            </div>
+            <div id="signals-container"></div>
+        </section>
 
-<footer>
-    <p class="warning-text">⚠️ PACHECOIN est un outil d'aide à l'analyse personnelle. Les signaux affichés ne constituent pas des conseils en investissement. Tout trading comporte un risque de perte en capital.</p>
-</footer>
-```
+        <section id="tab-portfolio" class="tab-content">
+            <div id="portfolio-container"></div>
+        </section>
+    </main>
 
+    <footer>
+        <p class="warning-text">⚠️ PACHECOIN est un outil d'aide à l'analyse personnelle. Les signaux affichés ne constituent pas des conseils en investissement. Tout trading comporte un risque de perte en capital.</p>
+    </footer>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    // Cette fonction garantit que les onglets fonctionnent 
+    // même si le fichier app.js met du temps à charger.
+    function showTab(tab) {
+        const loginTab = document.getElementById('tab-login');
+        const signupTab = document.getElementById('tab-signup');
+        const tabs = document.querySelectorAll('.auth-tab');
+        const msg = document.getElementById('auth-message');
 
+        if (msg) msg.innerText = ''; // Efface les anciens messages d'erreur
+
+        if (tab === 'login') {
+            loginTab.style.display = 'block';
+            signupTab.style.display = 'none';
+            tabs[0].classList.add('active');
+            tabs[1].classList.remove('active');
+        } else {
+            loginTab.style.display = 'none';
+            signupTab.style.display = 'block';
+            tabs[0].classList.remove('active');
+            tabs[1].classList.add('active');
+        }
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 
 </body>
