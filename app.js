@@ -5,10 +5,12 @@
    —————————————————————————————————————————————————————————————————————————— */
 const SUPABASE_URL  = 'https://cbeucdnkixjhqzdazyxw.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiZXVjZG5raXhqaHF6ZGF6eXh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTUyMzEsImV4cCI6MjA5Mzk5MTIzMX0.h2m2_WOxmVa-ZkdZrdKaWobGKrQbUIqB3nGOuagcN8M';
+
+// Initialisation du client Supabase
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
 /* ——————————————————————————————————————————————————————————————————————————
-   2. MODULE PORTFOLIO (Gestion du capital et des positions)
+   2. MODULE PORTFOLIO (Gestion locale)
    —————————————————————————————————————————————————————————————————————————— */
 const portfolio = {
     state: (() => {
@@ -35,7 +37,6 @@ const portfolio = {
         newCandles.forEach(candle => {
             if (data.position) {
                 const perf = (candle.close - data.position.entryPrice) / data.position.entryPrice;
-                // Sortie si signal SELL ou perte de 50%
                 if (signal === 'SELL' || perf < -0.50) {
                     data.capital *= (1 + perf);
                     data.position = null;
@@ -68,20 +69,33 @@ window.handleLogin = async () => {
 window.handleSignup = async () => {
     const email = document.getElementById('signup-email').value.trim();
     const pwd   = document.getElementById('signup-pwd').value;
+    
     if (!email || !pwd) return setAuthMsg('Veuillez remplir tous les champs.');
+    if (!email.includes('@')) return setAuthMsg('Format email invalide.');
     if (pwd.length < 6) return setAuthMsg('Mot de passe : 6 caractères minimum.');
+
     const { error } = await supabase.auth.signUp({ email, password: pwd });
-    if (error) setAuthMsg(error.message);
-    else setAuthMsg('Compte créé ! Vérifiez vos emails (si activé).', false);
+    
+    if (error) {
+        setAuthMsg(error.message);
+    } else {
+        setAuthMsg('Inscription réussie ! Connectez-vous.', false);
+    }
 };
 
-window.handleLogout = async () => { await supabase.auth.signOut(); };
+window.handleLogout = async () => { 
+    await supabase.auth.signOut(); 
+};
 
 function setAuthMsg(msg, isError = true) {
     const el = document.getElementById('auth-message');
-    if (el) { el.innerText = msg; el.style.color = isError ? '#f6465d' : '#0ecb81'; }
+    if (el) { 
+        el.innerText = msg; 
+        el.style.color = isError ? '#f6465d' : '#0ecb81'; 
+    }
 }
 
+// Surveillance de l'état de connexion
 supabase.auth.onAuthStateChange((event, session) => {
     const authScreen = document.getElementById('auth-screen');
     const mainApp = document.getElementById('main-app');
@@ -114,7 +128,7 @@ const CONFIG = {
 const BINANCE_BASE = 'https://api.binance.com/api/v3';
 let state = { signals: {}, livePrices: {}, selectedTf: '1d', currentPair: 'BTCUSDT' };
 
-// Calcul ATR
+// Helpers Math
 function getATR(h, l, c, p) {
     const tr = c.map((v, i) => i === 0 ? 0 : Math.max(h[i]-l[i], Math.abs(h[i]-c[i-1]), Math.abs(l[i]-c[i-1])));
     let res = new Array(c.length).fill(0);
@@ -161,7 +175,6 @@ function calcQQEMod(closes) {
     for(let i=rsiPeriod+1; i<closes.length; i++) {
         avgG = (avgG*(rsiPeriod-1)+gains[i])/rsiPeriod;
         avgL = (avgL*(rsiPeriod-1)+losses[i])/rsiPeriod;
-        // Protection division par zéro
         rsi[i] = avgL === 0 ? 100 : 100 - (100 / (1 + (avgG / avgL)));
     }
     let rsiMa = new Array(rsi.length).fill(50);
@@ -229,12 +242,11 @@ async function startAnalysis() {
                 price: k.closes[k.closes.length - 1]
             };
 
-            // Mise à jour Portfolio
             const candles = d.map(x => ({ time: x[0], close: parseFloat(x[4]) }));
             const score = (state.signals[s].ut === 'bull' ? 1 : 0) + (state.signals[s].st === 'bull' ? 1 : 0) + (state.signals[s].qqe === 'bull' ? 1 : 0);
             portfolio.update(s, state.selectedTf, candles, score >= 2 ? 'BUY' : 'SELL');
 
-            renderSignals(); // Rendu progressif
+            renderSignals(); 
         } catch(e) { console.error(`Erreur sur ${s}:`, e); }
     }
     refreshPortfolio(state.currentPair);
@@ -243,6 +255,7 @@ async function startAnalysis() {
 
 function renderSignals() {
     const container = document.getElementById('signals-container');
+    if (!container) return;
     container.innerHTML = CONFIG.pairs.map(s => {
         const d = state.signals[s];
         if (!d) return `<div class="crypto-card"><span>${s}</span>...</div>`;
@@ -282,7 +295,8 @@ function refreshPortfolio(pair) {
 window.viewPair = (pair) => {
     state.currentPair = pair;
     refreshPortfolio(pair);
-    document.querySelector('[data-tab="tab-portfolio"]').click();
+    const tabBtn = document.querySelector('[data-tab="tab-portfolio"]');
+    if (tabBtn) tabBtn.click();
 };
 
 function updateCountdown() {
@@ -304,7 +318,6 @@ function initApp() {
     if (appInitialized) return;
     appInitialized = true;
 
-    // Navigation Tabs
     document.querySelectorAll('.nav-tab').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.nav-tab, .tab-content').forEach(el => el.classList.remove('active'));
@@ -320,7 +333,8 @@ function initApp() {
         sel.onchange = (e) => { state.selectedTf = e.target.value; startAnalysis(); };
     }
     
-    document.getElementById('refresh-btn').onclick = startAnalysis;
+    const refreshBtn = document.getElementById('refresh-btn');
+    if (refreshBtn) refreshBtn.onclick = startAnalysis;
 
     setInterval(updateCountdown, 1000);
     setInterval(fetchLivePrices, 10000);
