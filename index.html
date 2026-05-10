@@ -1,130 +1,76 @@
 <!DOCTYPE html>
+
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PACHECOIN Terminal</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        /* TES COULEURS ICI */
-        :root { 
-            --bg: #000000;         /* FOND TOTALEMENT NOIR */
-            --primary: #f0b90b;    /* ÉCRITURE ORANGE/JAUNE */
-            --card: #141414;       /* Cartes gris très sombre pour le contraste */
-            --text-grey: #a0a0a0;  /* Texte secondaire gris */
-        }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: var(--primary); font-family: 'Courier New', Courier, monospace; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
-        
-        /* DESIGN ORANGE ET NOIR */
-        .auth-box { background: var(--card); padding: 30px; border-radius: 8px; width: 100%; max-width: 350px; border: 1px solid var(--primary); box-shadow: 0 0 10px rgba(240, 185, 11, 0.2); }
-        .logo { font-weight: bold; color: var(--primary); font-size: 2rem; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
-        
-        .auth-tabs { display: flex; margin-bottom: 20px; border-bottom: 1px solid #333; }
-        .auth-tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; opacity: 0.5; color: var(--primary); }
-        .auth-tab.active { opacity: 1; border-bottom: 2px solid var(--primary); }
-        
-        .auth-input { width: 100%; padding: 12px; margin-bottom: 15px; background: #000; border: 1px solid var(--primary); color: var(--primary); border-radius: 4px; font-family: monospace; }
-        .auth-input::placeholder { color: rgba(240, 185, 11, 0.5); }
-        
-        .auth-btn { width: 100%; padding: 12px; background: var(--primary); border: none; color: black; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-family: monospace; }
-        .auth-btn:active { opacity: 0.8; }
-        
-        #auth-message { margin-top: 15px; font-size: 0.9rem; text-align: center; min-height: 1.2rem; color: var(--text-grey); }
-
-        /* APP LAYOUT (Masqué par défaut) */
-        #main-app { display: none; width: 100%; max-width: 600px; text-align: center; }
-        .crypto-card { background: var(--card); border: 1px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: left; }
-    </style>
+    <title>PACHECOIN - Assistant d'Analyse</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div id="auth-screen">
-        <div class="logo">PACHECOIN</div>
-        <div class="auth-box">
-            <div class="auth-tabs">
-                <div class="auth-tab active" onclick="switchAuth('login')">LOGIN</div>
-                <div class="auth-tab" onclick="switchAuth('signup')">SIGNUP</div>
-            </div>
-            
-            <div id="auth-form">
-                <input type="email" id="auth-email" class="auth-input" placeholder="pacheco@mail.com">
-                <input type="password" id="auth-pwd" class="auth-input" placeholder="********">
-                <button id="auth-main-btn" class="auth-btn" onclick="handleAuth()">SE CONNECTER</button>
-            </div>
-            <div id="auth-message">En attente...</div>
+<!-- ÉCRAN AUTH -->
+
+<div id="auth-screen">
+    <h1 class="logo-pache">PACHECOIN</h1>
+    <div class="auth-card">
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="showTab('login')">Connexion</button>
+            <button class="auth-tab" onclick="showTab('signup')">Inscription</button>
         </div>
-    </div>
-
-    <div id="main-app">
-        <div class="logo">PACHECOIN</div>
-        <p style="color: white">Bienvenue, Terminal activé.</p>
-        <div class="crypto-card">
-            <h3 style="color: var(--primary)">BTCUSDT</h3>
-            <p style="color: #0ecb81">Signal: ACHAT STRONG</p>
+        <div id="tab-login">
+            <input id="login-email" type="email" placeholder="Email" autocomplete="email">
+            <input id="login-pwd" type="password" placeholder="Mot de passe" autocomplete="current-password">
+            <button class="auth-btn" onclick="handleLogin()">SE CONNECTER</button>
         </div>
-        <button class="auth-btn" style="background: #333; color: white; width: auto; padding: 10px 20px;" onclick="handleLogout()">DECONNEXION</button>
+        <div id="tab-signup" style="display:none;">
+            <input id="signup-email" type="email" placeholder="Email" autocomplete="email">
+            <input id="signup-pwd" type="password" placeholder="Mot de passe (6 caractères min)" autocomplete="new-password">
+            <button class="auth-btn" onclick="handleSignup()">CRÉER UN COMPTE</button>
+        </div>
+        <p id="auth-message"></p>
     </div>
+</div>
 
-    <script>
-        'use strict';
-        
-        // Configuration Supabase
-        const SUPABASE_URL  = 'https://cbeucdnkixjhqzdazyxw.supabase.co';
-        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiZXVjZG5raXhqaHF6ZGF6eXh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTUyMzEsImV4cCI6MjA5Mzk5MTIzMX0.h2m2_WOxmVa-ZkdZrdKaWobGKrQbUIqB3nGOuagcN8M';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+<!-- APPLI PRINCIPALE -->
 
-        let currentAuthMode = 'login';
+<div id="main-app" style="display:none;">
+    <header>
+        <h1 class="logo-pache">PACHECOIN</h1>
+        <div id="market-timer">CLÔTURE : <span id="countdown">--:--:--</span></div>
+        <p id="last-update">Chargement des données...</p>
+        <button id="logout-btn" onclick="handleLogout()">Déconnexion</button>
+    </header>
 
-        // Fonctions d'interface
-        function switchAuth(mode) {
-            currentAuthMode = mode;
-            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById('auth-main-btn').innerText = mode === 'login' ? 'SE CONNECTER' : 'CRÉER UN COMPTE';
-            document.getElementById('auth-message').innerText = "Mode " + mode;
-        }
+```
+<nav class="tabs">
+    <button class="nav-tab active" data-tab="tab-signals">📊 Signaux</button>
+    <button class="nav-tab" data-tab="tab-portfolio">💼 Portfolio</button>
+</nav>
 
-        // Logique d'authentification
-        async function handleAuth() {
-            // TEST DE SURVIE : Si tu ne vois pas cette alerte, Vercel n'a pas mis à jour le site.
-            alert("Tentative de connexion en cours..."); 
+<main>
+    <section id="tab-signals" class="tab-content active">
+        <div class="controls">
+            <button id="refresh-btn">↻</button>
+            <select id="signal-tf-select"></select>
+        </div>
+        <div id="signals-container"></div>
+    </section>
+    <section id="tab-portfolio" class="tab-content">
+        <div id="portfolio-container"></div>
+    </section>
+</main>
 
-            const email = document.getElementById('auth-email').value.trim();
-            const pwd = document.getElementById('auth-pwd').value;
-            const msgEl = document.getElementById('auth-message');
-            
-            if(!email || !pwd) { msgEl.innerText = "ERREUR: Champs vides"; msgEl.style.color = 'red'; return; }
+<footer>
+    <p class="warning-text">⚠️ PACHECOIN est un outil d'aide à l'analyse personnelle. Les signaux affichés ne constituent pas des conseils en investissement. Tout trading comporte un risque de perte en capital.</p>
+</footer>
+```
 
-            msgEl.innerText = "Communication Supabase...";
-            msgEl.style.color = 'var(--text-grey)';
-            let result;
+</div>
 
-            if(currentAuthMode === 'login') {
-                result = await supabase.auth.signInWithPassword({ email, password: pwd });
-            } else {
-                result = await supabase.auth.signUp({ email, password: pwd });
-            }
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-            if(result.error) {
-                msgEl.innerText = "ERREUR: " + result.error.message;
-                msgEl.style.color = 'red';
-            } else if(currentAuthMode === 'signup' && !result.data.session) {
-                msgEl.innerText = "SUCCÈS: Compte créé ! Vérifie tes mails.";
-                msgEl.style.color = '#0ecb81';
-            }
-        }
+<script src="app.js"></script>
 
-        async function handleLogout() { await supabase.auth.signOut(); location.reload(); }
-
-        // Surveillance de l'état (Affiche l'app si connecté)
-        supabase.auth.onAuthStateChange((event, session) => {
-            if(session) {
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('main-app').style.display = 'block';
-            }
-        });
-    </script>
 </body>
 </html>
