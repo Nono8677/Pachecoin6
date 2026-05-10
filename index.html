@@ -2,18 +2,137 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEST PACHECOIN</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PACHECOIN V6</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background: #0b0e11; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: sans-serif; }
-        .test-btn { padding: 20px 40px; background: #f0b90b; border: none; border-radius: 8px; font-weight: bold; font-size: 1.2rem; cursor: pointer; }
+        :root { --bg: #0b0e11; --card: #1e2329; --text: #eaeaea; --primary: #f0b90b; --buy: #0ecb81; --sell: #f6465d; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding-bottom: 70px; }
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .auth-box { background: var(--card); padding: 25px; border-radius: 12px; width: 100%; max-width: 320px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 8px 0; background: #2b3139; border: 1px solid #444; color: white; border-radius: 4px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-primary { background: var(--primary); color: black; }
+        .btn-outline { background: none; border: 1px solid #444; color: #848e9c; font-size: 0.8rem; }
+        header { padding: 15px; border-bottom: 1px solid #2b3139; display: flex; justify-content: space-between; }
+        .tab-content { display: none; padding: 15px; }
+        .tab-content.active { display: block; }
+        .crypto-card { background: var(--card); border-radius: 10px; padding: 15px; margin-bottom: 10px; border-left: 4px solid #444; }
+        .verdict.buy { color: var(--buy); font-weight: bold; }
+        .verdict.out { color: var(--sell); font-weight: bold; }
+        nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; height: 60px; border-top: 1px solid #333; }
+        .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; opacity: 0.6; }
+        .nav-item.active { opacity: 1; color: var(--primary); }
     </style>
 </head>
 <body>
 
-    <button class="test-btn" onclick="alert('Le code répond !')">
-        TESTER LE BOUTON
-    </button>
+    <div id="auth-screen">
+        <div class="auth-box">
+            <h2 style="color:var(--primary)">PACHECOIN</h2>
+            <p id="auth-title">Connexion</p>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="pwd" placeholder="Mot de passe">
+            <button class="btn btn-primary" onclick="handleAuth()" id="main-btn">SE CONNECTER</button>
+            <button class="btn btn-outline" onclick="toggleAuth()" id="toggle-btn">Pas de compte ? S'inscrire</button>
+            <div id="msg" style="margin-top:10px; font-size:0.8rem;"></div>
+        </div>
+    </div>
 
+    <div id="app" style="display:none;">
+        <header>
+            <span style="color:var(--primary); font-weight:bold;">PACHECOIN</span>
+            <span id="update-time" style="font-size:0.7rem; opacity:0.5;">MàJ...</span>
+        </header>
+
+        <div id="tab-home" class="tab-content active">
+            <div id="signals-list">Analyse du marché...</div>
+        </div>
+
+        <div id="tab-port" class="tab-content">
+            <h3>Portefeuille</h3>
+            <div id="port-data"></div>
+        </div>
+
+        <nav>
+            <div class="nav-item active" onclick="switchTab('tab-home', this)">Marché</div>
+            <div class="nav-item" onclick="switchTab('tab-port', this)">Profil</div>
+            <div class="nav-item" onclick="supabase.auth.signOut().then(()=>location.reload())">Sortir</div>
+        </nav>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://cbeucdnkixjhqzdazyxw.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiZXVjZG5raXhqaHF6ZGF6eXh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTUyMzEsImV4cCI6MjA5Mzk5MTIzMX0.h2m2_WOxmVa-ZkdZrdKaWobGKrQbUIqB3nGOuagcN8M';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let isLogin = true;
+        function toggleAuth() {
+            isLogin = !isLogin;
+            document.getElementById('auth-title').innerText = isLogin ? 'Connexion' : 'Inscription';
+            document.getElementById('main-btn').innerText = isLogin ? 'SE CONNECTER' : 'CRÉER UN COMPTE';
+            document.getElementById('toggle-btn').innerText = isLogin ? "Pas de compte ? S'inscrire" : "Déjà inscrit ? Connexion";
+        }
+
+        async function handleAuth() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('pwd').value;
+            const msg = document.getElementById('msg');
+            msg.innerText = "Patientez...";
+
+            const { data, error } = isLogin 
+                ? await supabase.auth.signInWithPassword({ email, password })
+                : await supabase.auth.signUp({ email, password });
+
+            if (error) {
+                msg.innerText = error.message;
+                msg.style.color = 'var(--sell)';
+            } else if (!isLogin && !data.session) {
+                msg.innerText = "Compte créé ! Connectez-vous.";
+                msg.style.color = 'var(--buy)';
+                toggleAuth();
+            }
+        }
+
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('app').style.display = 'block';
+                startTrading();
+            }
+        });
+
+        function switchTab(id, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            el.classList.add('active');
+        }
+
+        async function startTrading() {
+            const pairs = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
+            const list = document.getElementById('signals-list');
+            
+            for (let s of pairs) {
+                const r = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${s}`);
+                const d = await r.json();
+                const change = parseFloat(d.priceChangePercent);
+                
+                const card = document.createElement('div');
+                card.className = 'crypto-card';
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between">
+                        <b>${s}</b>
+                        <span>${parseFloat(d.lastPrice).toLocaleString()}$</span>
+                    </div>
+                    <div class="verdict ${change > 0 ? 'buy' : 'out'}">
+                        ${change > 0 ? '▲ SIGNAL ACHAT' : '▼ ATTENTE'} (${change}%)
+                    </div>
+                `;
+                list.appendChild(card);
+            }
+            document.getElementById('update-time').innerText = new Date().toLocaleTimeString();
+        }
+    </script>
 </body>
 </html>
