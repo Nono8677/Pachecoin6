@@ -36,9 +36,10 @@ const portfolio = {
         return this.state.assets[asset + '_' + tf] || { capital: 1000, position: null };
     }
 };
+
 const SUPABASE_URL = 'https://ikcxcotbyrztngawbwro.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrY3hjb3RieXJ6dG5nYXdid3JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNzU3MDQsImV4cCI6MjA5Mzc1MTcwNH0.pUV8iAY7nUI1mGtv_DO-36fMLPOKfMM6oVydgowtdgM';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
 window.showTab = function(tab) {
     document.getElementById('tab-login').style.display = tab === 'login' ? 'block' : 'none';
@@ -59,7 +60,7 @@ window.handleLogin = async function() {
     const email = document.getElementById('login-email').value.trim();
     const pwd = document.getElementById('login-pwd').value;
     if (!email || !pwd) return setAuthMsg('Remplis tous les champs.');
-    const result = await supabase.auth.signInWithPassword({ email: email, password: pwd });
+    const result = await sbClient.auth.signInWithPassword({ email: email, password: pwd });
     if (result.error) setAuthMsg('Email ou mot de passe incorrect.');
 };
 
@@ -68,14 +69,14 @@ window.handleSignup = async function() {
     const pwd = document.getElementById('signup-pwd').value;
     if (!email || !pwd) return setAuthMsg('Remplis tous les champs.');
     if (pwd.length < 6) return setAuthMsg('Mot de passe trop court.');
-    const result = await supabase.auth.signUp({ email: email, password: pwd });
+    const result = await sbClient.auth.signUp({ email: email, password: pwd });
     if (result.error) setAuthMsg(result.error.message);
     else setAuthMsg('Compte cree ! Verifie tes emails.', false);
 };
 
-window.handleLogout = async function() { await supabase.auth.signOut(); };
+window.handleLogout = async function() { await sbClient.auth.signOut(); };
 
-supabase.auth.onAuthStateChange(function(event, session) {
+sbClient.auth.onAuthStateChange(function(event, session) {
     if (session) {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('main-app').style.display = 'block';
@@ -85,6 +86,7 @@ supabase.auth.onAuthStateChange(function(event, session) {
         document.getElementById('main-app').style.display = 'none';
     }
 });
+
 const CONFIG = {
     pairs: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT'],
     utBot: { keyValue: 2, atrPeriod: 10 },
@@ -177,6 +179,7 @@ function calcNocheco(h, l, c) {
     }
     return { bosType: bosType, sl: sl, tp: tp };
 }
+
 async function fetchLivePrices() {
     try {
         const res = await fetch(BINANCE_BASE + '/ticker/price');
@@ -232,6 +235,7 @@ async function startAnalysis() {
     refreshPortfolio(state.currentPair);
     document.getElementById('last-update').innerText = 'A jour : ' + new Date().toLocaleTimeString();
 }
+
 function renderSignals() {
     const container = document.getElementById('signals-container');
     container.innerHTML = CONFIG.pairs.map(function(s) {
@@ -280,6 +284,7 @@ window.viewPair = function(pair) {
     refreshPortfolio(pair);
     document.querySelector('[data-tab="tab-portfolio"]').click();
 };
+
 function updateCountdown() {
     const now = new Date();
     const unit = state.selectedTf === '1h' ? 3600000 : (state.selectedTf === '4h' ? 14400000 : 86400000);
@@ -295,7 +300,6 @@ let appInitialized = false;
 function initApp() {
     if (appInitialized) return;
     appInitialized = true;
-
     document.querySelectorAll('.nav-tab').forEach(function(btn) {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.nav-tab, .tab-content').forEach(function(el) { el.classList.remove('active'); });
@@ -303,20 +307,16 @@ function initApp() {
             document.getElementById(btn.dataset.tab).classList.add('active');
         });
     });
-
     const sel = document.getElementById('signal-tf-select');
     if (sel) {
         CONFIG.timeframes.forEach(function(t) { sel.add(new Option(t.label, t.value)); });
         sel.value = state.selectedTf;
         sel.onchange = function(e) { state.selectedTf = e.target.value; startAnalysis(); };
     }
-
     const refreshBtn = document.getElementById('refresh-btn');
     if (refreshBtn) refreshBtn.onclick = startAnalysis;
-
     setInterval(updateCountdown, 1000);
     setInterval(fetchLivePrices, 10000);
-
     startAnalysis();
     fetchLivePrices();
 }
