@@ -1,249 +1,327 @@
-* { box-sizing: border-box; }
-
-body {
-    background-color: #000000;
-    color: #ffffff;
-    font-family: -apple-system, sans-serif;
-    margin: 0;
-    padding: 0;
+/* --- VARIABLES ET RESET --- */
+:root {
+    --bg-dark: #0d1117; /* Fond très noir */
+    --card-bg: #161b22; /* Fond des cartes légèrement plus clair */
+    --text-primary: #ffffff; /* Texte blanc principal */
+    --text-muted: #8b949e; /* Texte grisé pour l'heure/dates */
+    --accent-yellow: #f0b90b; /* Jaune Binance/Pachecoin pour le logo/titres */
+    --accent-green: #0ecb81; /* Vert "J'achète" */
+    --accent-red: #f6465d; /* Rouge "Hors Marché" (pour plus tard) */
+    --border-color: #30363d; /* Couleur des bordures fines */
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+/* --- ÉCRAN D'AUTHENTIFICATION (SI BESOIN) --- */
 #auth-screen {
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
-    min-height: 100vh;
+    align-items: center;
+    height: 100vh;
     padding: 20px;
-    background-color: #000000;
-}
-
-#auth-screen .logo-pache {
-    font-size: 3rem;
-    margin-bottom: 30px;
 }
 
 .auth-card {
-    background: #0d0d0d;
-    border-radius: 16px;
-    padding: 30px 24px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 25px;
     width: 100%;
-    max-width: 360px;
-    border: 1px solid #1a1a1a;
+    max-width: 400px;
+    text-align: center;
 }
 
 .auth-tabs {
     display: flex;
-    margin-bottom: 24px;
-    border-bottom: 1px solid #1a1a1a;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border-color);
 }
 
 .auth-tab {
     flex: 1;
     background: none;
     border: none;
-    color: #555;
+    color: var(--text-muted);
     padding: 10px;
-    font-size: 0.95rem;
     cursor: pointer;
+    font-weight: 600;
 }
 
 .auth-tab.active {
-    color: #ff8c00;
-    border-bottom: 2px solid #ff8c00;
+    color: var(--accent-yellow);
+    border-bottom: 2px solid var(--accent-yellow);
 }
 
 .auth-card input {
     width: 100%;
-    background: #111111;
-    border: 1px solid #222;
-    color: white;
-    padding: 13px 14px;
+    background-color: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 12px;
+    margin-bottom: 10px;
     border-radius: 8px;
-    font-size: 1rem;
-    margin-bottom: 12px;
-    outline: none;
 }
-
-.auth-card input:focus { border-color: #ff8c00; }
 
 .auth-btn {
     width: 100%;
-    background: #ff8c00;
+    background-color: var(--accent-yellow);
     color: #000;
     border: none;
-    padding: 14px;
+    padding: 12px;
     border-radius: 8px;
-    font-weight: 800;
-    font-size: 1rem;
+    font-weight: bold;
     cursor: pointer;
-    margin-top: 4px;
+    margin-top: 10px;
 }
-
-.auth-btn:active { background: #e07b00; }
 
 #auth-message {
-    text-align: center;
-    font-size: 0.85rem;
-    margin-top: 14px;
-    min-height: 20px;
+    margin-top: 15px;
+    font-size: 0.9rem;
 }
 
-#main-app { padding: 15px; }
-
-header { text-align: center; margin-bottom: 25px; }
+/* --- HEADER ET NAVIGATION (COMME SUR L'IMAGE) --- */
+header {
+    text-align: center;
+    padding: 25px 20px;
+}
 
 .logo-pache {
-    color: #ff8c00;
-    background-color: #000000;
-    font-size: 2.8rem;
-    margin: 0;
+    color: var(--accent-yellow);
+    font-size: 2.5rem;
     font-weight: 900;
+    text-transform: uppercase;
     letter-spacing: 2px;
-    padding: 4px 0;
+    margin-bottom: 15px;
 }
 
 #market-timer {
-    color: #ff8c00;
-    font-weight: bold;
-    margin-top: 8px;
+    color: var(--accent-yellow);
     font-size: 1.2rem;
-    font-family: monospace;
+    font-weight: bold;
+    margin-bottom: 10px;
 }
 
-#last-update { font-size: 0.75rem; opacity: 0.5; margin: 4px 0; }
+#last-update {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
 
 #logout-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
     background: none;
-    border: 1px solid #1a1a1a;
-    color: #555;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 0.75rem;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
     cursor: pointer;
-    margin-top: 8px;
 }
 
+/* --- TABS DE NAVIGATION (COMME SUR L'IMAGE) --- */
 .tabs {
     display: flex;
     justify-content: center;
-    border-bottom: 1px solid #1a1a1a;
-    margin-bottom: 20px;
+    background-color: var(--card-bg);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .nav-tab {
+    flex: 1;
     background: none;
     border: none;
-    color: #555;
-    padding: 12px 20px;
+    color: var(--text-muted);
+    padding: 15px;
     font-size: 1rem;
+    font-weight: 600;
     cursor: pointer;
+    max-width: 150px;
 }
 
-.nav-tab.active { color: #ff8c00; border-bottom: 2px solid #ff8c00; }
+.nav-tab.active {
+    color: var(--accent-yellow);
+    border-bottom: 3px solid var(--accent-yellow);
+}
 
-.tab-content { display: none; }
-.tab-content.active { display: block; }
+/* --- CONTENU PRINCIPAL --- */
+main {
+    padding: 20px;
+    padding-bottom: 80px; /* Espace pour le footer */
+}
 
-.controls { display: flex; justify-content: space-between; margin-bottom: 15px; }
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* --- CONTRÔLES (BOUTON REFRESH ET TIMEFRAME SELON L'IMAGE) --- */
+.controls {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
 
 #refresh-btn {
-    background: #111111;
-    color: white;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 6px;
-    font-size: 1.1rem;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 10px 20px;
+    border-radius: 8px;
     cursor: pointer;
+    font-size: 1.2rem;
 }
 
-select {
-    background: #111111;
-    color: white;
-    border: none;
+#signal-tf-select {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
     padding: 10px;
-    border-radius: 6px;
+    border-radius: 8px;
+}
+
+/* --- CARTES CRYPTO (L'ÉLÉMENT CLÉ DE L'IMAGE) --- */
+#signals-container {
+    display: grid;
+    gap: 15px;
 }
 
 .crypto-card {
-    background: #0d0d0d;
-    border-radius: 12px;
-    padding: 18px;
-    margin-bottom: 12px;
-    border: 1px solid #1a1a1a;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
     cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.crypto-card:hover {
+    transform: translateY(-3px);
+    border-color: #444;
 }
 
 .card-info {
-    font-weight: bold;
-    font-size: 1.1rem;
-    margin-bottom: 12px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 15px;
 }
 
-.pair-name { color: #ffffff; }
+.pair-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
 
 .live-price {
-    color: #ff8c00;
-    font-family: monospace;
-    font-size: 1rem;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--text-primary);
 }
 
+/* --- LE BOUTON VERT "J'ACHÈTE" --- */
 .verdict {
-    padding: 12px;
-    border-radius: 8px;
+    width: 100%;
+    padding: 15px;
+    border-radius: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
     text-align: center;
-    font-weight: 800;
-    font-size: 1rem;
-    margin-bottom: 12px;
+    font-size: 1.2rem;
 }
 
-.verdict.buy { background: #0ecb81; color: #000; }
-.verdict.out { background: #1a0a0a; color: #f6465d; border: 1px solid #3b1015; }
+.verdict.buy {
+    background-color: var(--accent-green);
+    color: #000; /* Texte noir sur fond vert pour lisibilité */
+}
 
+.verdict.out {
+    background-color: #333;
+    color: var(--text-muted);
+}
+
+/* Badge BOS optionnel */
 .bos-badge {
     display: inline-block;
-    font-size: 0.78rem;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 6px;
-    margin-bottom: 8px;
+    margin-top: 10px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
 }
+.bos-bull { background-color: rgba(14, 203, 129, 0.2); color: var(--accent-green); }
+.bos-bear { background-color: rgba(246, 70, 93, 0.2); color: var(--accent-red); }
 
-.bos-bull { background: #0ecb8122; color: #0ecb81; border: 1px solid #0ecb8144; }
-.bos-bear { background: #f6465d22; color: #f6465d; border: 1px solid #f6465d44; }
-
-.sl-tp-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.82rem;
-    margin-top: 4px;
-}
-
-.sl-val { color: #f6465d; font-weight: 600; }
-.tp-val { color: #0ecb81; font-weight: 600; }
-
+/* --- PORTFOLIO CARD (MÊME STYLE QUE L'IMAGE) --- */
 .portfolio-card {
-    background: #0d0d0d;
-    padding: 40px 20px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
     border-radius: 16px;
+    padding: 25px;
     text-align: center;
-    border: 1px solid #ff8c00;
 }
 
-.cap-val { font-size: 3rem; font-weight: 800; margin: 15px 0; }
-.perf-val { font-size: 1.4rem; font-weight: 700; }
-.perf-val.plus { color: #0ecb81; }
-.perf-val.minus { color: #f6465d; }
+.portfolio-card h3 {
+    color: var(--accent-yellow);
+    margin-bottom: 15px;
+}
+
+.cap-val {
+    font-size: 2.2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.perf-val {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+.perf-val.plus { color: var(--accent-green); }
+.perf-val.minus { color: var(--accent-red); }
+
+/* --- FOOTER --- */
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--bg-dark);
+    padding: 10px 20px;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+}
 
 .warning-text {
-    font-size: 0.70rem;
-    color: #b35f00;
-    text-align: center;
-    margin-top: 40px;
-    padding: 10px;
-    border-top: 1px solid #1a1a1a;
-    line-height: 1.5;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    line-height: 1.2;
+}
+
+/* --- RESPONSIVE MOBILE --- */
+@media (max-width: 600px) {
+    .logo-pache {
+        font-size: 2rem;
+    }
+    
+    .crypto-card {
+        padding: 15px;
+    }
 }
