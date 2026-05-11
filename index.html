@@ -1,11 +1,4 @@
-<div id="debug" style="background:red;color:white;padding:10px;font-size:12px;word-break:break-all;"></div>
-<script>
-window.onerror = function(msg, src, line) {
-  document.getElementById('debug').innerText = msg + ' | ' + src + ' | ligne ' + line;
-};
-</script>
 <!DOCTYPE html>
-
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -16,7 +9,6 @@ window.onerror = function(msg, src, line) {
 <body>
 
 <!-- ÉCRAN AUTH -->
-
 <div id="auth-screen">
     <h1 class="logo-pache">PACHECOIN</h1>
     <div class="auth-card">
@@ -39,7 +31,6 @@ window.onerror = function(msg, src, line) {
 </div>
 
 <!-- APPLI PRINCIPALE -->
-
 <div id="main-app" style="display:none;">
     <header>
         <h1 class="logo-pache">PACHECOIN</h1>
@@ -48,34 +39,30 @@ window.onerror = function(msg, src, line) {
         <button id="logout-btn" onclick="handleLogout()">Déconnexion</button>
     </header>
 
-```
-<nav class="tabs">
-    <button class="nav-tab active" data-tab="tab-signals">📊 Signaux</button>
-    <button class="nav-tab" data-tab="tab-portfolio">💼 Portfolio</button>
-</nav>
+    <nav class="tabs">
+        <button class="nav-tab active" data-tab="tab-signals">📊 Signaux</button>
+        <button class="nav-tab" data-tab="tab-portfolio">💼 Portfolio</button>
+    </nav>
 
-<main>
-    <section id="tab-signals" class="tab-content active">
-        <div class="controls">
-            <button id="refresh-btn">↻</button>
-            <select id="signal-tf-select"></select>
-        </div>
-        <div id="signals-container"></div>
-    </section>
-    <section id="tab-portfolio" class="tab-content">
-        <div id="portfolio-container"></div>
-    </section>
-</main>
+    <main>
+        <section id="tab-signals" class="tab-content active">
+            <div class="controls">
+                <button id="refresh-btn">↻</button>
+                <select id="signal-tf-select"></select>
+            </div>
+            <div id="signals-container"></div>
+        </section>
+        <section id="tab-portfolio" class="tab-content">
+            <div id="portfolio-container"></div>
+        </section>
+    </main>
 
-<footer>
-    <p class="warning-text">⚠️ PACHECOIN est un outil d'aide à l'analyse personnelle. Les signaux affichés ne constituent pas des conseils en investissement. Tout trading comporte un risque de perte en capital.</p>
-</footer>
-```
-
+    <footer>
+        <p class="warning-text">⚠️ PACHECOIN est un outil d'aide à l'analyse personnelle. Les signaux affichés ne constituent pas des conseils en investissement. Tout trading comporte un risque de perte en capital.</p>
+    </footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script src="app.js"></script>
 
 </body>
