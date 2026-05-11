@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PACHECOIN - Assistant d'Analyse</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app.js" defer></script>
 </head>
 <body>
@@ -18,13 +18,13 @@
             <button class="auth-tab" onclick="showTab('signup')">Inscription</button>
         </div>
         <div id="tab-login">
-            <input id="login-email" type="email" placeholder="Email" autocomplete="email">
-            <input id="login-pwd" type="password" placeholder="Mot de passe" autocomplete="current-password">
+            <input id="login-email" type="email" placeholder="Email">
+            <input id="login-pwd" type="password" placeholder="Mot de passe">
             <button class="auth-btn" onclick="handleLogin()">SE CONNECTER</button>
         </div>
         <div id="tab-signup" style="display:none;">
-            <input id="signup-email" type="email" placeholder="Email" autocomplete="email">
-            <input id="signup-pwd" type="password" placeholder="Mot de passe (6 caractères min)" autocomplete="new-password">
+            <input id="signup-email" type="email" placeholder="Email">
+            <input id="signup-pwd" type="password" placeholder="Mot de passe (6 min)">
             <button class="auth-btn" onclick="handleSignup()">CRÉER UN COMPTE</button>
         </div>
         <p id="auth-message"></p>
@@ -35,7 +35,7 @@
     <header>
         <h1 class="logo-pache">PACHECOIN</h1>
         <div id="market-timer">CLÔTURE : <span id="countdown">--:--:--</span></div>
-        <p id="last-update">Chargement des données...</p>
+        <p id="last-update">Initialisation...</p>
         <button id="logout-btn" onclick="handleLogout()">Déconnexion</button>
     </header>
 
@@ -58,7 +58,7 @@
     </main>
 
     <footer>
-        <p class="warning-text">⚠️ PACHECOIN est un outil d'aide à l'analyse personnelle.</p>
+        <p class="warning-text">⚠️ Outil d'aide à l'analyse personnelle. Risque de perte en capital.</p>
     </footer>
 </div>
 
