@@ -1,19 +1,14 @@
-// CONFIGURATION SUPABASE
-const SUPABASE_URL = 'https://ikcxcotbyrztngawbwro.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrY3hjb3RieXJ6dG5nYXdid3JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNzU3MDQsImV4cCI6MjA5Mzc1MTcwNH0.pUV8iAY7nUI1mGtv_DO-36fMLPOKfMM6oVydgowtdgM';
+// --- CONFIGURATION SUPABASE (MISE À JOUR) ---
+const SUPABASE_URL = 'https://cbeucdnkixjhqzdazyxw.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiZXVjZG5raXhqaHF6ZGF6eXh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTUyMzEsImV4cCI6MjA5Mzk5MTIzMX0.h2m2_WOxmVa-ZkdZrdKaWobGKrQbUIqB3nGOuagcN8M';
 
-let sbClient;
+// Initialisation du client
+const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-// Initialisation sécurisée
-try {
-    sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-} catch (e) {
-    console.error("Erreur d'initialisation Supabase:", e);
-}
+// --- CONFIGURATION API ---
+const BINANCE_BASE = 'https://api.binance.com/api/v3'; // HTTPS pour Vercel
 
-// CONFIGURATION ANALYSE
-const BINANCE_BASE = 'https://api.binance.com/api/v3'; // CORRIGÉ : HTTPS obligatoire pour Vercel
-
+// --- GESTION DU PORTFOLIO (LOCALSTORAGE) ---
 const portfolio = {
     state: (function() {
         try {
@@ -23,7 +18,7 @@ const portfolio = {
     save: function() {
         try {
             localStorage.setItem('pache_portfolio', JSON.stringify(this.state));
-        } catch(e) { console.warn('localStorage save failed:', e); }
+        } catch(e) { console.warn('Erreur sauvegarde portfolio:', e); }
     },
     update: function(asset, tf, candles, signal) {
         const id = asset + '_' + tf;
@@ -32,6 +27,7 @@ const portfolio = {
         }
         const data = this.state.assets[id];
         const newCandles = candles.filter(c => c.time > data.lastSeen);
+        
         newCandles.forEach(candle => {
             if (data.position) {
                 const perf = (candle.close - data.position.entryPrice) / data.position.entryPrice;
@@ -51,7 +47,7 @@ const portfolio = {
     }
 };
 
-// AUTHENTIFICATION
+// --- AUTHENTIFICATION ---
 window.showTab = function(tab) {
     document.getElementById('tab-login').style.display = tab === 'login' ? 'block' : 'none';
     document.getElementById('tab-signup').style.display = tab === 'signup' ? 'block' : 'none';
@@ -74,11 +70,8 @@ window.handleLogin = async function() {
     const pwd = document.getElementById('login-pwd').value;
     if (!email || !pwd) return setAuthMsg('Remplis tous les champs.');
     
-    const { data, error } = await sbClient.auth.signInWithPassword({ email, password: pwd });
-    if (error) {
-        console.error("Login Error:", error);
-        setAuthMsg(error.message);
-    }
+    const { error } = await sbClient.auth.signInWithPassword({ email, password: pwd });
+    if (error) setAuthMsg('Email ou mot de passe incorrect.');
 };
 
 window.handleSignup = async function() {
@@ -87,29 +80,30 @@ window.handleSignup = async function() {
     if (!email || !pwd) return setAuthMsg('Remplis tous les champs.');
     if (pwd.length < 6) return setAuthMsg('Mot de passe trop court.');
     
-    const { data, error } = await sbClient.auth.signUp({ email, password: pwd });
-    if (error) {
-        console.error("Signup Error:", error);
-        setAuthMsg(error.message);
-    } else {
-        setAuthMsg('Compte créé ! Vérifie tes emails ou connecte-toi.', false);
-    }
+    const { error } = await sbClient.auth.signUp({ email, password: pwd });
+    if (error) setAuthMsg(error.message);
+    else setAuthMsg('Compte créé ! Connecte-toi.', false);
 };
 
-window.handleLogout = async function() { await sbClient.auth.signOut(); };
+window.handleLogout = async function() { 
+    await sbClient.auth.signOut(); 
+};
 
+// Surveillance de l'état de connexion
 sbClient.auth.onAuthStateChange((event, session) => {
+    const authScreen = document.getElementById('auth-screen');
+    const mainApp = document.getElementById('main-app');
     if (session) {
-        document.getElementById('auth-screen').style.display = 'none';
-        document.getElementById('main-app').style.display = 'block';
+        authScreen.style.display = 'none';
+        mainApp.style.display = 'block';
         initApp();
     } else {
-        document.getElementById('auth-screen').style.display = 'flex';
-        document.getElementById('main-app').style.display = 'none';
+        authScreen.style.display = 'flex';
+        mainApp.style.display = 'none';
     }
 });
 
-// LOGIQUE ANALYSE (Gardée identique mais URL Binance sécurisée)
+// --- LOGIQUE D'ANALYSE TECHNIQUE ---
 const CONFIG = {
     pairs: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT'],
     utBot: { keyValue: 2, atrPeriod: 10 },
@@ -125,9 +119,79 @@ const CONFIG = {
 
 let state = { signals: {}, livePrices: {}, selectedTf: '1d', currentPair: 'BTCUSDT' };
 
-// ... Fonctions mathématiques (getATR, calcUTBot, etc.) restent identiques ...
-// (Elles sont correctes dans ton code initial)
+// Fonctions de calcul (UTBot, Supertrend, etc.)
+function getATR(h, l, c, p) {
+    const tr = c.map((v, i) => i === 0 ? 0 : Math.max(h[i]-l[i], Math.abs(h[i]-c[i-1]), Math.abs(l[i]-c[i-1])));
+    const res = new Array(c.length).fill(0);
+    let sum = 0;
+    for (let i = 1; i <= p; i++) sum += tr[i];
+    res[p] = sum / p;
+    for (let i = p+1; i < c.length; i++) res[i] = (res[i-1] * (p-1) + tr[i]) / p;
+    return res;
+}
 
+function calcUTBot(h, l, c) {
+    const a = getATR(h, l, c, CONFIG.utBot.atrPeriod);
+    const ts = new Array(c.length).fill(0);
+    const p = new Array(c.length).fill(0);
+    for (let i = 1; i < c.length; i++) {
+        const nL = CONFIG.utBot.keyValue * a[i];
+        if (c[i] > ts[i-1] && c[i-1] > ts[i-1]) ts[i] = Math.max(ts[i-1], c[i]-nL);
+        else if (c[i] < ts[i-1] && c[i-1] < ts[i-1]) ts[i] = Math.min(ts[i-1], c[i]+nL);
+        else ts[i] = c[i] > ts[i-1] ? c[i]-nL : c[i]+nL;
+        p[i] = (c[i-1] <= ts[i-1] && c[i] > ts[i]) ? 1 : (c[i-1] >= ts[i-1] && c[i] < ts[i]) ? -1 : p[i-1];
+    }
+    return p[c.length-1] === 1 ? 'bull' : 'bear';
+}
+
+function calcSuperTrend(h, l, c) {
+    const a = getATR(h, l, c, CONFIG.supertrend.period);
+    const ub = new Array(c.length).fill(0);
+    const lb = new Array(c.length).fill(0);
+    const d = new Array(c.length).fill(1);
+    for (let i = CONFIG.supertrend.period; i < c.length; i++) {
+        const mid = (h[i] + l[i]) / 2;
+        ub[i] = mid + CONFIG.supertrend.multiplier * a[i];
+        lb[i] = mid - CONFIG.supertrend.multiplier * a[i];
+        d[i] = (c[i] > ub[i-1]) ? -1 : (c[i] < lb[i-1] ? 1 : d[i-1]);
+    }
+    const isBull = d[c.length-1] === -1;
+    return { signal: isBull ? 'bull' : 'bear', line: isBull ? lb[lb.length-1] : ub[ub.length-1] };
+}
+
+function calcQQEMod(closes) {
+    const rsiPeriod = CONFIG.qqe.rsi;
+    const changes = closes.map((c, i) => i === 0 ? 0 : c - closes[i-1]);
+    const gains = changes.map(v => v > 0 ? v : 0);
+    const losses = changes.map(v => v < 0 ? -v : 0);
+    let avgG = gains.slice(1, rsiPeriod+1).reduce((a,b)=>a+b, 0) / rsiPeriod;
+    let avgL = losses.slice(1, rsiPeriod+1).reduce((a,b)=>a+b, 0) / rsiPeriod;
+    const rsi = new Array(closes.length).fill(50);
+    for (let i = rsiPeriod+1; i < closes.length; i++) {
+        avgG = (avgG*(rsiPeriod-1)+gains[i])/rsiPeriod;
+        avgL = (avgL*(rsiPeriod-1)+losses[i])/rsiPeriod;
+        rsi[i] = avgL === 0 ? 100 : 100 - (100 / (1 + (avgG / avgL)));
+    }
+    const rsiMa = new Array(rsi.length).fill(50);
+    const alpha = 2 / (CONFIG.qqe.smooth + 1);
+    for (let i = 1; i < rsi.length; i++) rsiMa[i] = rsi[i]*alpha + rsiMa[i-1]*(1-alpha);
+    return (rsiMa[rsiMa.length-1] > 50 && rsiMa[rsiMa.length-1] > rsiMa[rsiMa.length-2]) ? 'bull' : 'bear';
+}
+
+function calcNocheco(h, l, c) {
+    const len = CONFIG.nocheco.length;
+    const rr = CONFIG.nocheco.rr;
+    let bosType = null, sl = null, tp = null;
+    for (let i = len; i < c.length; i++) {
+        let sH = Math.max(...h.slice(i-len, i));
+        let sL = Math.min(...l.slice(i-len, i));
+        if (c[i-1] <= sH && c[i] > sH) { bosType = 'bull'; sl = sL; tp = c[i] + (c[i] - sL) * rr; }
+        if (c[i-1] >= sL && c[i] < sL) { bosType = 'bear'; sl = sH; tp = c[i] - (sH - c[i]) * rr; }
+    }
+    return { bosType, sl, tp };
+}
+
+// --- APP ACTIONS ---
 async function fetchLivePrices() {
     try {
         const res = await fetch(BINANCE_BASE + '/ticker/price');
@@ -137,27 +201,26 @@ async function fetchLivePrices() {
             if (found) state.livePrices[pair] = parseFloat(found.price);
         });
         updatePriceDisplays();
-    } catch(e) { console.error('Price fetch error:', e); }
+    } catch(e) { console.error('Erreur prix Binance:', e); }
 }
 
 function updatePriceDisplays() {
     CONFIG.pairs.forEach(pair => {
         const el = document.getElementById('price-' + pair);
         if (el && state.livePrices[pair]) {
-            el.innerText = state.livePrices[pair].toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '$';
+            el.innerText = state.livePrices[pair].toLocaleString('en-US', { minimumFractionDigits: 2 }) + '$';
         }
     });
 }
 
 async function startAnalysis() {
-    const loader = document.getElementById('last-update');
-    if (loader) loader.innerText = 'Analyse en cours...';
+    const updateEl = document.getElementById('last-update');
+    if(updateEl) updateEl.innerText = 'Analyse en cours...';
     
     for (const s of CONFIG.pairs) {
         try {
             const r = await fetch(`${BINANCE_BASE}/klines?symbol=${s}&interval=${state.selectedTf}&limit=201`);
             const raw = await r.json();
-            if (!Array.isArray(raw)) continue;
             const d = raw.slice(0, raw.length - 1);
             const k = {
                 highs: d.map(x => parseFloat(x[2])),
@@ -165,31 +228,61 @@ async function startAnalysis() {
                 closes: d.map(x => parseFloat(x[4]))
             };
             
-            // Les fonctions de calcul doivent être définies ici ou avant
             const st = calcSuperTrend(k.highs, k.lows, k.closes);
             state.signals[s] = {
                 ut: calcUTBot(k.highs, k.lows, k.closes),
                 st: st.signal,
-                stLine: st.line,
                 qqe: calcQQEMod(k.closes),
-                nocheco: calcNocheco(k.highs, k.lows, k.closes),
-                price: k.closes[k.closes.length - 1]
+                nocheco: calcNocheco(k.highs, k.lows, k.closes)
             };
             
-            const candlesForPortfolio = d.map(x => ({ time: x[0], close: parseFloat(x[4]) }));
             const score = (state.signals[s].ut === 'bull' ? 1 : 0) + (state.signals[s].st === 'bull' ? 1 : 0) + (state.signals[s].qqe === 'bull' ? 1 : 0);
-            portfolio.update(s, state.selectedTf, candlesForPortfolio, score >= 2 ? 'BUY' : 'SELL');
+            portfolio.update(s, state.selectedTf, d.map(x => ({time: x[0], close: parseFloat(x[4])})), score >= 2 ? 'BUY' : 'SELL');
             renderSignals();
-        } catch(e) { console.error('Erreur analyse ' + s + ':', e); }
+        } catch(e) { console.error('Erreur analyse ' + s, e); }
     }
-    refreshPortfolio(state.currentPair);
-    if (loader) loader.innerText = 'À jour : ' + new Date().toLocaleTimeString();
+    if(updateEl) updateEl.innerText = 'MàJ : ' + new Date().toLocaleTimeString();
 }
 
-// ... Les autres fonctions de rendu (renderSignals, refreshPortfolio, etc.) ...
+function renderSignals() {
+    const container = document.getElementById('signals-container');
+    container.innerHTML = CONFIG.pairs.map(s => {
+        const d = state.signals[s];
+        if (!d) return '';
+        const isBuy = (d.ut === 'bull' ? 1 : 0) + (d.st === 'bull' ? 1 : 0) + (d.qqe === 'bull' ? 1 : 0) >= 2;
+        return `
+            <div class="crypto-card" onclick="viewPair('${s}')">
+                <div class="card-info">
+                    <span class="pair-name">${s}</span>
+                    <span class="live-price" id="price-${s}">${state.livePrices[s] || '...'} $</span>
+                </div>
+                <div class="verdict ${isBuy ? 'buy' : 'out'}">${isBuy ? "J'ACHÈTE" : 'HORS MARCHÉ'}</div>
+                ${d.nocheco.bosType ? `<div class="bos-badge bos-${d.nocheco.bosType}">BOS ${d.nocheco.bosType}</div>` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+function refreshPortfolio(pair) {
+    const container = document.getElementById('portfolio-container');
+    const data = portfolio.getDisplayData(pair, state.selectedTf);
+    const perf = ((data.capital - 1000) / 1000) * 100;
+    container.innerHTML = `
+        <div class="portfolio-card">
+            <h3>${pair} (${state.selectedTf.toUpperCase()})</h3>
+            <div class="cap-val">${data.capital.toFixed(2)} $</div>
+            <div class="perf-val ${perf >= 0 ? 'plus' : 'minus'}">${perf >= 0 ? '+' : ''}${perf.toFixed(2)}%</div>
+        </div>
+    `;
+}
+
+window.viewPair = function(pair) {
+    state.currentPair = pair;
+    refreshPortfolio(pair);
+    document.querySelector('[data-tab="tab-portfolio"]').click();
+};
 
 function initApp() {
-    // Initialise les événements, le timer et lance le premier fetch
     document.querySelectorAll('.nav-tab').forEach(btn => {
         btn.onclick = () => {
             document.querySelectorAll('.nav-tab, .tab-content').forEach(el => el.classList.remove('active'));
@@ -209,7 +302,8 @@ function initApp() {
     fetchLivePrices();
 }
 
-// Lancement automatique du countdown
+// Timers
+setInterval(fetchLivePrices, 10000);
 setInterval(() => {
     const now = new Date();
     const unit = state.selectedTf === '1h' ? 3600000 : (state.selectedTf === '4h' ? 14400000 : 86400000);
@@ -220,5 +314,3 @@ setInterval(() => {
     const el = document.getElementById('countdown');
     if (el) el.innerText = h + ':' + m + ':' + s;
 }, 1000);
-
-setInterval(fetchLivePrices, 10000);
