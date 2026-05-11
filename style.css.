@@ -1,64 +1,66 @@
-/* --- VARIABLES ET RESET --- */
+/* --- STYLE GLOBAL --- */
 :root {
-    --bg-dark: #0d1117; /* Fond très noir */
-    --card-bg: #161b22; /* Fond des cartes légèrement plus clair */
-    --text-primary: #ffffff; /* Texte blanc principal */
-    --text-muted: #8b949e; /* Texte grisé pour l'heure/dates */
-    --accent-yellow: #f0b90b; /* Jaune Binance/Pachecoin pour le logo/titres */
-    --accent-green: #0ecb81; /* Vert "J'achète" */
-    --accent-red: #f6465d; /* Rouge "Hors Marché" (pour plus tard) */
-    --border-color: #30363d; /* Couleur des bordures fines */
-    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --bg-dark: #000000;
+    --card-bg: #121212;
+    --accent-yellow: #ffb100;
+    --accent-green: #0ecb81;
+    --text-white: #ffffff;
+    --text-gray: #848e9c;
+    --border: #2b2f36;
 }
 
-* {
+body, html {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
-}
-
-body {
+    width: 100%;
+    height: 100%;
     background-color: var(--bg-dark);
-    color: var(--text-primary);
-    font-family: var(--font-family);
-    -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
+    color: var(--text-white);
+    font-family: 'Inter', -apple-system, sans-serif;
 }
 
-/* --- ÉCRAN D'AUTHENTIFICATION (SI BESOIN) --- */
+/* --- ÉCRAN CONNEXION --- */
 #auth-screen {
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     height: 100vh;
     padding: 20px;
 }
 
+.logo-pache {
+    color: var(--accent-yellow);
+    font-size: 2.5rem;
+    font-weight: 900;
+    margin-bottom: 30px;
+    letter-spacing: 2px;
+}
+
 .auth-card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 25px;
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 16px;
     width: 100%;
-    max-width: 400px;
-    text-align: center;
+    max-width: 350px;
+    border: 1px solid var(--border);
 }
 
 .auth-tabs {
     display: flex;
-    margin-bottom: 20px;
-    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 25px;
+    gap: 10px;
 }
 
 .auth-tab {
     flex: 1;
     background: none;
     border: none;
-    color: var(--text-muted);
+    color: var(--text-gray);
     padding: 10px;
     cursor: pointer;
-    font-weight: 600;
+    font-weight: bold;
+    font-size: 0.9rem;
 }
 
 .auth-tab.active {
@@ -66,262 +68,98 @@ body {
     border-bottom: 2px solid var(--accent-yellow);
 }
 
-.auth-card input {
+input {
     width: 100%;
-    background-color: var(--bg-dark);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    padding: 12px;
-    margin-bottom: 10px;
+    background: #1e2329;
+    border: 1px solid var(--border);
+    padding: 15px;
+    margin-bottom: 15px;
     border-radius: 8px;
+    color: white;
+    box-sizing: border-box;
 }
 
 .auth-btn {
     width: 100%;
-    background-color: var(--accent-yellow);
-    color: #000;
+    background: var(--accent-yellow);
+    color: black;
     border: none;
-    padding: 12px;
+    padding: 15px;
     border-radius: 8px;
     font-weight: bold;
     cursor: pointer;
-    margin-top: 10px;
-}
-
-#auth-message {
-    margin-top: 15px;
-    font-size: 0.9rem;
-}
-
-/* --- HEADER ET NAVIGATION (COMME SUR L'IMAGE) --- */
-header {
-    text-align: center;
-    padding: 25px 20px;
-}
-
-.logo-pache {
-    color: var(--accent-yellow);
-    font-size: 2.5rem;
-    font-weight: 900;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 15px;
+}
+
+/* --- APP PRINCIPALE --- */
+header {
+    padding: 20px;
+    text-align: center;
 }
 
 #market-timer {
     color: var(--accent-yellow);
-    font-size: 1.2rem;
     font-weight: bold;
-    margin-bottom: 10px;
+    margin: 10px 0;
 }
 
-#last-update {
-    color: var(--text-muted);
-    font-size: 0.85rem;
-}
-
-#logout-btn {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: none;
-    border: 1px solid var(--border-color);
-    color: var(--text-muted);
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    cursor: pointer;
-}
-
-/* --- TABS DE NAVIGATION (COMME SUR L'IMAGE) --- */
 .tabs {
     display: flex;
-    justify-content: center;
-    background-color: var(--card-bg);
-    border-top: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border);
 }
 
 .nav-tab {
     flex: 1;
+    padding: 15px;
     background: none;
     border: none;
-    color: var(--text-muted);
-    padding: 15px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    max-width: 150px;
+    color: var(--text-gray);
+    font-weight: bold;
 }
 
 .nav-tab.active {
     color: var(--accent-yellow);
-    border-bottom: 3px solid var(--accent-yellow);
+    border-bottom: 2px solid var(--accent-yellow);
 }
 
-/* --- CONTENU PRINCIPAL --- */
-main {
-    padding: 20px;
-    padding-bottom: 80px; /* Espace pour le footer */
-}
-
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-/* --- CONTRÔLES (BOUTON REFRESH ET TIMEFRAME SELON L'IMAGE) --- */
-.controls {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-}
-
-#refresh-btn {
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.2rem;
-}
-
-#signal-tf-select {
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    padding: 10px;
-    border-radius: 8px;
-}
-
-/* --- CARTES CRYPTO (L'ÉLÉMENT CLÉ DE L'IMAGE) --- */
-#signals-container {
-    display: grid;
-    gap: 15px;
-}
-
+/* --- CARTES SIGNAUX --- */
 .crypto-card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
+    background: var(--card-bg);
+    margin: 15px;
     padding: 20px;
-    cursor: pointer;
-    transition: transform 0.2s, border-color 0.2s;
-}
-
-.crypto-card:hover {
-    transform: translateY(-3px);
-    border-color: #444;
+    border-radius: 12px;
+    border: 1px solid var(--border);
 }
 
 .card-info {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     margin-bottom: 15px;
-}
-
-.pair-name {
-    font-size: 1.1rem;
     font-weight: bold;
-    color: var(--text-primary);
 }
 
-.live-price {
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: var(--text-primary);
-}
-
-/* --- LE BOUTON VERT "J'ACHÈTE" --- */
 .verdict {
     width: 100%;
     padding: 15px;
-    border-radius: 12px;
-    font-weight: 900;
-    text-transform: uppercase;
+    border-radius: 8px;
     text-align: center;
-    font-size: 1.2rem;
+    font-weight: 900;
 }
 
 .verdict.buy {
-    background-color: var(--accent-green);
-    color: #000; /* Texte noir sur fond vert pour lisibilité */
+    background: var(--accent-green);
+    color: black;
 }
 
 .verdict.out {
-    background-color: #333;
-    color: var(--text-muted);
+    background: #2b2f36;
+    color: var(--text-gray);
 }
-
-/* Badge BOS optionnel */
-.bos-badge {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: bold;
-}
-.bos-bull { background-color: rgba(14, 203, 129, 0.2); color: var(--accent-green); }
-.bos-bear { background-color: rgba(246, 70, 93, 0.2); color: var(--accent-red); }
-
-/* --- PORTFOLIO CARD (MÊME STYLE QUE L'IMAGE) --- */
-.portfolio-card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 25px;
-    text-align: center;
-}
-
-.portfolio-card h3 {
-    color: var(--accent-yellow);
-    margin-bottom: 15px;
-}
-
-.cap-val {
-    font-size: 2.2rem;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-.perf-val {
-    font-size: 1.2rem;
-    font-weight: bold;
-}
-.perf-val.plus { color: var(--accent-green); }
-.perf-val.minus { color: var(--accent-red); }
 
 /* --- FOOTER --- */
 footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: var(--bg-dark);
-    padding: 10px 20px;
+    padding: 20px;
     text-align: center;
-    border-top: 1px solid var(--border-color);
-}
-
-.warning-text {
     font-size: 0.7rem;
-    color: var(--text-muted);
-    line-height: 1.2;
-}
-
-/* --- RESPONSIVE MOBILE --- */
-@media (max-width: 600px) {
-    .logo-pache {
-        font-size: 2rem;
-    }
-    
-    .crypto-card {
-        padding: 15px;
-    }
+    color: var(--text-gray);
 }
