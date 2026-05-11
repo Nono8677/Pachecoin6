@@ -1,139 +1,80 @@
-/* RESET ET BASE */
-* {
+/* Style Global */
+body, html {
+    background-color: #000000 !important; /* Force le noir */
+    color: #ffffff;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
+    font-family: sans-serif;
 }
 
-body {
-    background-color: #000000; /* FOND NOIR */
-    color: #ffffff; /* TEXTE BLANC */
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    line-height: 1.6;
-}
-
-/* HEADER ET LOGO */
-header {
-    padding: 30px 20px;
-    text-align: center;
-}
-
+/* Titre Jaune Pachecoin */
 .logo-pache {
-    color: #f0b90b; /* JAUNE OR */
+    color: #f0b90b !important;
+    text-align: center;
     font-size: 2.5rem;
     font-weight: 900;
+    margin: 20px 0;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 10px;
 }
 
+/* Timer en Jaune */
 #market-timer {
+    text-align: center;
     color: #f0b90b;
-    font-size: 1.2rem;
     font-weight: bold;
-    margin-bottom: 5px;
+    font-size: 1.2rem;
 }
 
 #last-update {
+    text-align: center;
     color: #848e9c;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    margin-bottom: 20px;
 }
 
-/* BOUTONS DE NAVIGATION */
-.tabs {
-    display: flex;
-    justify-content: center;
-    background-color: #121212;
-    border-top: 1px solid #2b2f36;
-    border-bottom: 1px solid #2b2f36;
-}
-
-.nav-tab {
-    flex: 1;
-    background: none;
-    border: none;
-    color: #848e9c;
-    padding: 15px;
-    font-weight: bold;
-    font-size: 1rem;
-    cursor: pointer;
-}
-
-.nav-tab.active {
-    color: #f0b90b;
-    border-bottom: 3px solid #f0b90b;
-}
-
-/* CARTES CRYPTO */
-#signals-container {
-    padding: 20px;
-}
-
+/* Cartes des Cryptos */
 .crypto-card {
-    background-color: #161a1e;
+    background-color: #161a1e; /* Gris foncé type Binance */
     border: 1px solid #2b2f36;
     border-radius: 12px;
     padding: 20px;
-    margin-bottom: 15px;
+    margin: 15px;
 }
 
 .card-info {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
     font-size: 1.1rem;
     font-weight: bold;
+    margin-bottom: 15px;
 }
 
-/* LE BOUTON VERT "J'ACHÈTE" */
+/* Bouton J'ACHÈTE Vert */
 .verdict.buy {
-    background-color: #0ecb81; /* VERT BINANCE */
+    background-color: #0ecb81;
     color: #000000;
     text-align: center;
-    padding: 15px;
-    border-radius: 8px;
-    font-weight: 900;
-    font-size: 1.2rem;
-    text-transform: uppercase;
-}
-
-/* AUTH ET INPUTS */
-.auth-card {
-    background-color: #161a1e;
-    padding: 25px;
-    border-radius: 15px;
-    border: 1px solid #2b2f36;
-}
-
-input {
-    width: 100%;
     padding: 12px;
-    margin: 10px 0;
-    background-color: #1e2329;
-    border: 1px solid #2b2f36;
-    color: white;
     border-radius: 8px;
-}
-
-.auth-btn {
-    background-color: #f0b90b;
-    color: black;
     font-weight: bold;
-    border-radius: 8px;
-    padding: 12px;
-    width: 100%;
+}
+
+/* Boutons de navigation */
+.tabs {
+    display: flex;
+    justify-content: center;
+    border-bottom: 1px solid #2b2f36;
+}
+
+.nav-tab {
+    background: none;
     border: none;
-    cursor: pointer;
-}
-
-/* FOOTER */
-footer {
-    padding: 20px;
-    text-align: center;
-}
-
-.warning-text {
-    font-size: 0.8rem;
     color: #848e9c;
+    padding: 15px;
+    font-weight: bold;
+}
+
+.nav-tab.active {
+    color: #f0b90b;
+    border-bottom: 2px solid #f0b90b;
 }
