@@ -1,108 +1,45 @@
-/* --- STYLE GLOBAL --- */
 :root {
     --bg-dark: #000000;
     --card-bg: #121212;
-    --accent-yellow: #ffb100;
+    --accent-yellow: #f0b90b;
     --accent-green: #0ecb81;
     --text-white: #ffffff;
     --text-gray: #848e9c;
     --border: #2b2f36;
 }
 
-body, html {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
+body {
     background-color: var(--bg-dark);
     color: var(--text-white);
-    font-family: 'Inter', -apple-system, sans-serif;
-}
-
-/* --- ÉCRAN CONNEXION --- */
-#auth-screen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    padding: 20px;
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
 .logo-pache {
     color: var(--accent-yellow);
-    font-size: 2.5rem;
-    font-weight: 900;
-    margin-bottom: 30px;
-    letter-spacing: 2px;
-}
-
-.auth-card {
-    background: var(--card-bg);
-    padding: 30px;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 350px;
-    border: 1px solid var(--border);
-}
-
-.auth-tabs {
-    display: flex;
-    margin-bottom: 25px;
-    gap: 10px;
-}
-
-.auth-tab {
-    flex: 1;
-    background: none;
-    border: none;
-    color: var(--text-gray);
-    padding: 10px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 0.9rem;
-}
-
-.auth-tab.active {
-    color: var(--accent-yellow);
-    border-bottom: 2px solid var(--accent-yellow);
-}
-
-input {
-    width: 100%;
-    background: #1e2329;
-    border: 1px solid var(--border);
-    padding: 15px;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    color: white;
-    box-sizing: border-box;
-}
-
-.auth-btn {
-    width: 100%;
-    background: var(--accent-yellow);
-    color: black;
-    border: none;
-    padding: 15px;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    text-transform: uppercase;
-}
-
-/* --- APP PRINCIPALE --- */
-header {
-    padding: 20px;
     text-align: center;
+    font-size: 2.2rem;
+    font-weight: 900;
+    margin: 20px 0;
 }
 
 #market-timer {
+    text-align: center;
     color: var(--accent-yellow);
     font-weight: bold;
-    margin: 10px 0;
+    font-size: 1.2rem;
+    margin-bottom: 5px;
 }
 
+#last-update {
+    text-align: center;
+    color: var(--text-gray);
+    font-size: 0.8rem;
+    margin-bottom: 20px;
+}
+
+/* Onglets */
 .tabs {
     display: flex;
     border-bottom: 1px solid var(--border);
@@ -110,11 +47,12 @@ header {
 
 .nav-tab {
     flex: 1;
-    padding: 15px;
     background: none;
     border: none;
     color: var(--text-gray);
+    padding: 15px;
     font-weight: bold;
+    cursor: pointer;
 }
 
 .nav-tab.active {
@@ -122,12 +60,12 @@ header {
     border-bottom: 2px solid var(--accent-yellow);
 }
 
-/* --- CARTES SIGNAUX --- */
+/* Cartes Crypto */
 .crypto-card {
-    background: var(--card-bg);
-    margin: 15px;
-    padding: 20px;
+    background-color: var(--card-bg);
     border-radius: 12px;
+    padding: 20px;
+    margin: 15px;
     border: 1px solid var(--border);
 }
 
@@ -135,6 +73,7 @@ header {
     display: flex;
     justify-content: space-between;
     margin-bottom: 15px;
+    font-size: 1.1rem;
     font-weight: bold;
 }
 
@@ -143,23 +82,49 @@ header {
     padding: 15px;
     border-radius: 8px;
     text-align: center;
-    font-weight: 900;
+    font-weight: 800;
+    font-size: 1.1rem;
+    border: none;
 }
 
 .verdict.buy {
-    background: var(--accent-green);
-    color: black;
+    background-color: var(--accent-green);
+    color: #000;
 }
 
-.verdict.out {
-    background: #2b2f36;
-    color: var(--text-gray);
+/* Auth */
+#auth-screen {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
 }
 
-/* --- FOOTER --- */
-footer {
-    padding: 20px;
-    text-align: center;
-    font-size: 0.7rem;
-    color: var(--text-gray);
+.auth-card {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 400px;
+}
+
+.auth-card input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    background: #1e2329;
+    border: 1px solid var(--border);
+    color: white;
+    border-radius: 5px;
+}
+
+.auth-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent-yellow);
+    border: none;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
 }
