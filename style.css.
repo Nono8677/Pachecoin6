@@ -1,80 +1,263 @@
-/* Style Global */
-body, html {
-    background-color: #000000 !important; /* Force le noir */
-    color: #ffffff;
-    margin: 0;
-    padding: 0;
-    font-family: sans-serif;
+:root {
+–bg-dark: #000000;
+–card-bg: #121212;
+–card-bg2: #1e2329;
+–accent-yellow: #f0b90b;
+–accent-green: #0ecb81;
+–text-white: #ffffff;
+–text-gray: #848e9c;
+–border: #2b2f36;
 }
 
-/* Titre Jaune Pachecoin */
+- { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+background-color: #000000 !important;
+color: #ffffff;
+font-family: -apple-system, BlinkMacSystemFont, “Segoe UI”, Roboto, sans-serif;
+min-height: 100vh;
+}
+
+/* ── LOGO ── */
 .logo-pache {
-    color: #f0b90b !important;
-    text-align: center;
-    font-size: 2.5rem;
-    font-weight: 900;
-    margin: 20px 0;
-    text-transform: uppercase;
+color: var(–accent-yellow);
+text-align: center;
+font-size: 2.4rem;
+font-weight: 900;
+text-transform: uppercase;
+letter-spacing: 2px;
+padding: 24px 0 8px;
 }
 
-/* Timer en Jaune */
+/* ── HEADER ── */
+header {
+position: relative;
+background-color: #000000;
+padding-bottom: 8px;
+}
+
 #market-timer {
-    text-align: center;
-    color: #f0b90b;
-    font-weight: bold;
-    font-size: 1.2rem;
+text-align: center;
+color: var(–accent-yellow);
+font-weight: bold;
+font-size: 1.2rem;
+letter-spacing: 1px;
+margin-bottom: 4px;
 }
 
 #last-update {
-    text-align: center;
-    color: #848e9c;
-    font-size: 0.8rem;
-    margin-bottom: 20px;
+text-align: center;
+color: var(–text-gray);
+font-size: 0.8rem;
+margin-bottom: 8px;
 }
 
-/* Cartes des Cryptos */
-.crypto-card {
-    background-color: #161a1e; /* Gris foncé type Binance */
-    border: 1px solid #2b2f36;
-    border-radius: 12px;
-    padding: 20px;
-    margin: 15px;
+#logout-btn {
+position: absolute;
+top: 24px;
+right: 12px;
+background: var(–border);
+color: var(–text-white);
+border: none;
+padding: 6px 12px;
+border-radius: 6px;
+font-size: 0.72rem;
+cursor: pointer;
 }
 
-.card-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 1.1rem;
-    font-weight: bold;
-    margin-bottom: 15px;
-}
-
-/* Bouton J'ACHÈTE Vert */
-.verdict.buy {
-    background-color: #0ecb81;
-    color: #000000;
-    text-align: center;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: bold;
-}
-
-/* Boutons de navigation */
+/* ── NAVIGATION TABS ── */
 .tabs {
-    display: flex;
-    justify-content: center;
-    border-bottom: 1px solid #2b2f36;
+display: flex;
+border-bottom: 1px solid var(–border);
+background-color: #000000;
 }
 
 .nav-tab {
-    background: none;
-    border: none;
-    color: #848e9c;
-    padding: 15px;
-    font-weight: bold;
+flex: 1;
+background: none;
+border: none;
+color: var(–text-gray);
+padding: 14px;
+font-weight: bold;
+font-size: 0.95rem;
+cursor: pointer;
+border-bottom: 2px solid transparent;
+transition: color 0.2s;
 }
 
 .nav-tab.active {
-    color: #f0b90b;
-    border-bottom: 2px solid #f0b90b;
+color: var(–accent-yellow);
+border-bottom: 2px solid var(–accent-yellow);
+}
+
+/* ── TAB CONTENT ── */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ── CONTROLS ── */
+.controls {
+display: flex;
+align-items: center;
+gap: 10px;
+padding: 12px 15px;
+}
+
+#refresh-btn {
+background: var(–card-bg2);
+color: var(–text-white);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 10px 14px;
+font-size: 1.1rem;
+cursor: pointer;
+}
+
+#signal-tf-select {
+background: var(–card-bg2);
+color: var(–accent-yellow);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 10px 14px;
+font-size: 0.95rem;
+font-weight: bold;
+cursor: pointer;
+-webkit-appearance: none;
+appearance: none;
+}
+
+/* ── CRYPTO CARDS ── */
+.crypto-card {
+background-color: var(–card-bg);
+border-radius: 12px;
+padding: 20px;
+margin: 12px 15px;
+border: 1px solid var(–border);
+}
+
+.card-info {
+display: flex;
+justify-content: space-between;
+align-items: center;
+font-size: 1.1rem;
+font-weight: bold;
+margin-bottom: 14px;
+color: var(–text-white);
+}
+
+.verdict {
+width: 100%;
+padding: 15px;
+border: none;
+border-radius: 8px;
+text-align: center;
+font-weight: 800;
+font-size: 1rem;
+text-transform: uppercase;
+letter-spacing: 1px;
+}
+
+.verdict.buy {
+background-color: var(–accent-green);
+color: #000000;
+}
+
+.verdict.sell {
+background-color: #f6465d;
+color: #ffffff;
+}
+
+.verdict.neutral {
+background-color: var(–border);
+color: var(–text-gray);
+}
+
+/* ── AUTH SCREEN ── */
+#auth-screen {
+display: flex;
+flex-direction: column;
+min-height: 100vh;
+justify-content: center;
+align-items: center;
+background-color: #000000;
+}
+
+.auth-card {
+background: var(–card-bg);
+padding: 30px;
+border-radius: 15px;
+width: 90%;
+max-width: 400px;
+border: 1px solid var(–border);
+}
+
+.auth-tabs {
+display: flex;
+margin-bottom: 20px;
+border-bottom: 1px solid var(–border);
+}
+
+.auth-tab {
+flex: 1;
+background: none;
+border: none;
+color: var(–text-gray);
+padding: 10px;
+font-weight: bold;
+cursor: pointer;
+border-bottom: 2px solid transparent;
+}
+
+.auth-tab.active {
+color: var(–accent-yellow);
+border-bottom: 2px solid var(–accent-yellow);
+}
+
+.auth-card input {
+width: 100%;
+padding: 12px;
+margin: 8px 0;
+background: var(–card-bg2);
+border: 1px solid var(–border);
+color: var(–text-white);
+border-radius: 8px;
+font-size: 0.95rem;
+}
+
+.auth-card input::placeholder { color: var(–text-gray); }
+
+.auth-btn {
+width: 100%;
+padding: 13px;
+margin-top: 12px;
+background: var(–accent-yellow);
+color: #000000;
+border: none;
+font-weight: 900;
+font-size: 1rem;
+border-radius: 8px;
+cursor: pointer;
+text-transform: uppercase;
+letter-spacing: 1px;
+}
+
+#auth-message {
+text-align: center;
+font-size: 0.85rem;
+color: var(–accent-green);
+margin-top: 10px;
+min-height: 20px;
+}
+
+/* ── FOOTER ── */
+footer {
+background-color: #000000;
+padding: 10px 0 20px;
+}
+
+.warning-text {
+text-align: center;
+font-size: 0.72rem;
+color: var(–text-gray);
+padding: 10px 20px;
+line-height: 1.5;
 }
