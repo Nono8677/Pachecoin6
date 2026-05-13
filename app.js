@@ -1,8 +1,7 @@
-// — CONFIGURATION SUPABASE (MISE À JOUR) —
+// — CONFIGURATION SUPABASE —
 const SUPABASE_URL = ‘https://cbeucdnkixjhqzdazyxw.supabase.co’;
 const SUPABASE_ANON = ‘eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiZXVjZG5raXhqaHF6ZGF6eXh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTUyMzEsImV4cCI6MjA5Mzk5MTIzMX0.h2m2_WOxmVa-ZkdZrdKaWobGKrQbUIqB3nGOuagcN8M’;
 
-// Initialisation du client
 const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
 // — CONFIGURATION API —
@@ -79,7 +78,7 @@ if (!email || !pwd) return setAuthMsg(‘Remplis tous les champs.’);
 if (pwd.length < 6) return setAuthMsg(‘Mot de passe trop court.’);
 const { error } = await sbClient.auth.signUp({ email, password: pwd });
 if (error) setAuthMsg(error.message);
-else setAuthMsg(‘Compte créé ! Connecte-toi.’, false);
+else setAuthMsg(‘Compte cree ! Connecte-toi.’, false);
 };
 
 window.handleLogout = async function() {
@@ -115,6 +114,8 @@ timeframes: [
 
 let state = { signals: {}, livePrices: {}, selectedTf: ‘1d’, currentPair: ‘BTCUSDT’ };
 
+// — FONCTIONS DE CALCUL —
+
 function getATR(h, l, c, p) {
 const tr = c.map((v, i) => i === 0 ? 0 : Math.max(h[i]-l[i], Math.abs(h[i]-c[i-1]), Math.abs(l[i]-c[i-1])));
 const res = new Array(c.length).fill(0);
@@ -139,7 +140,6 @@ p[i] = (c[i-1] <= ts[i-1] && c[i] > ts[i]) ? 1 : (c[i-1] >= ts[i-1] && c[i] < ts
 return p[c.length-1] === 1 ? ‘bull’ : ‘bear’;
 }
 
-// MODIFIÉ : retourne aussi entryPrice (dernière upper band au croisement bear→bull)
 function calcSuperTrend(h, l, c) {
 const a = getATR(h, l, c, CONFIG.supertrend.period);
 const ub = new Array(c.length).fill(0);
@@ -154,7 +154,7 @@ d[i] = (c[i] > ub[i-1]) ? -1 : (c[i] < lb[i-1] ? 1 : d[i-1]);
 const isBull = d[c.length-1] === -1;
 
 ```
-// Recherche de la dernière upper band au moment du croisement bear(1)→bull(-1)
+// Derniere upper band au croisement bear(1)->bull(-1)
 let entryPrice = null;
 for (let i = CONFIG.supertrend.period + 1; i < c.length; i++) {
     if (d[i-1] === 1 && d[i] === -1) {
@@ -190,7 +190,7 @@ for (let i = 1; i < rsi.length; i++) rsiMa[i] = rsi[i]*alpha + rsiMa[i-1]*(1-alp
 return (rsiMa[rsiMa.length-1] > 50 && rsiMa[rsiMa.length-1] > rsiMa[rsiMa.length-2]) ? ‘bull’ : ‘bear’;
 }
 
-// AJOUT : ADX filtre silencieux (période 14)
+// ADX filtre silencieux (periode 14)
 function calcADX(h, l, c) {
 const period = CONFIG.adx.period;
 const len = c.length;
@@ -209,7 +209,6 @@ for (let i = 1; i < len; i++) {
     tr[i] = Math.max(h[i]-l[i], Math.abs(h[i]-c[i-1]), Math.abs(l[i]-c[i-1]));
 }
 
-// Première somme sur `period` bougies
 let smoothTR = tr.slice(1, period+1).reduce((a,b)=>a+b, 0);
 let smoothPlus = plusDM.slice(1, period+1).reduce((a,b)=>a+b, 0);
 let smoothMinus = minusDM.slice(1, period+1).reduce((a,b)=>a+b, 0);
@@ -219,7 +218,6 @@ for (let i = period + 1; i < len; i++) {
     smoothTR = smoothTR - (smoothTR / period) + tr[i];
     smoothPlus = smoothPlus - (smoothPlus / period) + plusDM[i];
     smoothMinus = smoothMinus - (smoothMinus / period) + minusDM[i];
-
     const diPlus = smoothTR !== 0 ? (smoothPlus / smoothTR) * 100 : 0;
     const diMinus = smoothTR !== 0 ? (smoothMinus / smoothTR) * 100 : 0;
     const diSum = diPlus + diMinus;
@@ -227,15 +225,13 @@ for (let i = period + 1; i < len; i++) {
 }
 
 if (dx.length < period) return 0;
-
-// ADX = moyenne des DX sur `period`
-const adx = dx.slice(-period).reduce((a,b)=>a+b, 0) / period;
-return adx;
+return dx.slice(-period).reduce((a,b)=>a+b, 0) / period;
 ```
 
 }
 
 // — APP ACTIONS —
+
 async function fetchLivePrices() {
 try {
 const res = await fetch(BINANCE_BASE + ‘/ticker/price’);
@@ -288,7 +284,6 @@ for (const s of CONFIG.pairs) {
                     + (state.signals[s].st === 'bull' ? 1 : 0)
                     + (state.signals[s].qqe === 'bull' ? 1 : 0);
 
-        // ADX filtre silencieux : score >= 2 ET ADX >= 20
         const signal = (score >= 2 && adx >= 20) ? 'BUY' : 'SELL';
 
         portfolio.update(s, state.selectedTf, d.map(x => ({ time: x[0], close: parseFloat(x[4]) })), signal);
@@ -296,7 +291,7 @@ for (const s of CONFIG.pairs) {
     } catch(e) { console.error('Erreur analyse ' + s, e); }
 }
 
-if (updateEl) updateEl.innerText = 'MàJ : ' + new Date().toLocaleTimeString();
+if (updateEl) updateEl.innerText = 'MaJ : ' + new Date().toLocaleTimeString();
 ```
 
 }
@@ -308,12 +303,13 @@ const d = state.signals[s];
 if (!d) return ‘’;
 
 ```
-    const score = (d.ut === 'bull' ? 1 : 0) + (d.st === 'bull' ? 1 : 0) + (d.qqe === 'bull' ? 1 : 0);
+    const score = (d.ut === 'bull' ? 1 : 0)
+                + (d.st === 'bull' ? 1 : 0)
+                + (d.qqe === 'bull' ? 1 : 0);
     const isBuy = score >= 2 && d.adx >= 20;
 
-    // Prix d'entrée affiché uniquement en Daily, toujours visible
     const entryHtml = (state.selectedTf === '1d' && d.entryPrice)
-        ? `<div class="entry-price">Prix d'entrée : ${d.entryPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })} $</div>`
+        ? `<div class="entry-price">Prix d'entree : ${d.entryPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })} $</div>`
         : '';
 
     return `
@@ -322,7 +318,7 @@ if (!d) return ‘’;
                 <span class="pair-name">${s}</span>
                 <span class="live-price" id="price-${s}">${state.livePrices[s] || '...'} $</span>
             </div>
-            <div class="verdict ${isBuy ? 'buy' : 'out'}">${isBuy ? "J'ACHÈTE" : 'HORS MARCHÉ'}</div>
+            <div class="verdict ${isBuy ? 'buy' : 'out'}">${isBuy ? "J'ACHETE" : 'HORS MARCHE'}</div>
             ${entryHtml}
         </div>
     `;
@@ -361,7 +357,6 @@ if (sel && sel.options.length === 0) {
     sel.onchange = (e) => { state.selectedTf = e.target.value; startAnalysis(); };
 }
 
-// AJOUT : bouton refresh branché
 const refreshBtn = document.getElementById('refresh-btn');
 if (refreshBtn) refreshBtn.onclick = () => startAnalysis();
 
@@ -371,8 +366,9 @@ fetchLivePrices();
 
 }
 
-// Timers
+// — TIMERS —
 setInterval(fetchLivePrices, 10000);
+
 setInterval(() => {
 const now = new Date();
 const unit = state.selectedTf === ‘1h’ ? 3600000 : (state.selectedTf === ‘4h’ ? 14400000 : 86400000);
