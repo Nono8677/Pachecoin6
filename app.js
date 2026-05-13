@@ -1,25 +1,32 @@
-// — CONFIGURATION —
-const SUPABASE_URL = 'https://cbeucdnkixjhqzdazyxw.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiZXVjZG5raXhqaHF6ZGF6eXh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTUyMzEsImV4cCI6MjA5Mzk5MTIzMX0.h2m2_WOxmVa-ZkdZrdKaWobGKrQbUIqB3nGOuagcN8M';
+// --- CONFIGURATION SÉCURISÉE ---
+const SUPABASE_URL = "https://cbeucdnkixjhqzdazyxw.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiZXVjZG5raXhqaHF6ZGF6eXh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTUyMzEsImV4cCI6MjA5Mzk5MTIzMX0.h2m2_WOxmVa-ZkdZrdKaWobGKrQbUIqB3nGOuagcN8M";
 
-const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-const BINANCE_BASE = 'https://api.binance.com/api/v3';
+// Initialisation robuste pour mobile
+const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true
+  }
+});
+
+const BINANCE_BASE = "https://api.binance.com/api/v3";
 
 const CONFIG = {
-    pairs: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT'],
+    pairs: ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT"],
     utBot: { keyValue: 2, atrPeriod: 10 },
     supertrend: { period: 10, multiplier: 3 },
     qqe: { rsi: 14, smooth: 5, fast: 4.236 },
     adx: { period: 14, threshold: 20 },
     timeframes: [
-        { label: '4H', value: '4h' },
-        { label: 'D', value: '1d' }
+        { label: "4H", value: "4h" },
+        { label: "D", value: "1d" }
     ]
 };
 
-let state = { signals: {}, livePrices: {}, selectedTf: '1d' };
+let state = { signals: {}, livePrices: {}, selectedTf: "1d" };
 
-// — MOTEUR DE CALCULS (INDEX -2) —
+// --- FONCTIONS DE CALCUL (Mobiles-Friendly) ---
 
 function getATR(h, l, c, p) {
     const tr = c.map((v, i) => i === 0 ? 0 : Math.max(h[i]-l[i], Math.abs(h[i]-c[i-1]), Math.abs(l[i]-c[i-1])));
@@ -33,31 +40,14 @@ function getATR(h, l, c, p) {
 
 function calcADX(h, l, c) {
     const p = CONFIG.adx.period;
+    let atr = getATR(h, l, c, p);
     let up = h.map((v, i) => i === 0 ? 0 : v - h[i-1]);
     let down = l.map((v, i) => i === 0 ? 0 : l[i-1] - v);
     let plusDM = up.map((v, i) => (v > down[i] && v > 0) ? v : 0);
     let minusDM = down.map((v, i) => (down[i] > v && down[i] > 0) ? down[i] : 0);
-    let atr = getATR(h, l, c, p);
-    
-    // Simplification pour obtenir la valeur actuelle de l'ADX
-    let plusDI = 100 * (plusDM[c.length-2] / atr[c.length-2]);
-    let minusDI = 100 * (minusDM[c.length-2] / atr[c.length-2]);
-    let dx = 100 * Math.abs(plusDI - minusDI) / (plusDI + minusDI);
-    return dx; 
-}
-
-function calcUTBot(h, l, c) {
-    const a = getATR(h, l, c, CONFIG.utBot.atrPeriod);
-    const ts = new Array(c.length).fill(0);
-    const p = new Array(c.length).fill(0);
-    for (let i = 1; i < c.length; i++) {
-        const nL = CONFIG.utBot.keyValue * a[i];
-        if (c[i] > ts[i-1] && c[i-1] > ts[i-1]) ts[i] = Math.max(ts[i-1], c[i]-nL);
-        else if (c[i] < ts[i-1] && c[i-1] < ts[i-1]) ts[i] = Math.min(ts[i-1], c[i]+nL);
-        else ts[i] = c[i] > ts[i-1] ? c[i]-nL : c[i]+nL;
-        p[i] = (c[i-1] <= ts[i-1] && c[i] > ts[i]) ? 1 : (c[i-1] >= ts[i-1] && c[i] < ts[i]) ? -1 : p[i-1];
-    }
-    return p[c.length-2] === 1 ? 'bull' : 'bear'; // Index -2
+    let plusDI = 100 * (plusDM[c.length-2] / (atr[c.length-2] || 1));
+    let minusDI = 100 * (minusDM[c.length-2] / (atr[c.length-2] || 1));
+    return (100 * Math.abs(plusDI - minusDI) / (plusDI + minusDI + 0.001));
 }
 
 function calcSuperTrend(h, l, c) {
@@ -71,28 +61,18 @@ function calcSuperTrend(h, l, c) {
         lb[i] = mid - CONFIG.supertrend.multiplier * a[i];
         d[i] = (c[i] > ub[i-1]) ? -1 : (c[i] < lb[i-1] ? 1 : d[i-1]);
     }
-    const isBull = d[c.length-2] === -1; // Index -2
-    return { signal: isBull ? 'bull' : 'bear', price: isBull ? lb[c.length-2] : ub[c.length-2] };
+    const isBull = d[c.length-2] === -1;
+    return { signal: isBull ? "bull" : "bear", price: isBull ? lb[c.length-2] : ub[c.length-2] };
 }
 
-function calcQQEMod(closes) {
-    const rsiPeriod = CONFIG.qqe.rsi;
-    const alpha = 2 / (CONFIG.qqe.smooth + 1);
-    // Calcul RSI simplifié pour démo logicielle
-    const rsiMa = new Array(closes.length).fill(50); 
-    // ... (Logique interne du QQE inchangée)
-    return (rsiMa[rsiMa.length-2] > 50) ? 'bull' : 'bear'; // Index -2
-}
-
-// — ACTIONS —
+// --- INTERFACE ET ACTIONS (Correction iPhone Click) ---
 
 async function startAnalysis() {
     for (const s of CONFIG.pairs) {
         try {
             const r = await fetch(`${BINANCE_BASE}/klines?symbol=${s}&interval=${state.selectedTf}&limit=201`);
             const raw = await r.json();
-            const d = raw.slice(0, raw.length - 1); // Retire la bougie en cours
-            
+            const d = raw.slice(0, raw.length - 1);
             const k = {
                 highs: d.map(x => parseFloat(x[2])),
                 lows: d.map(x => parseFloat(x[3])),
@@ -100,62 +80,73 @@ async function startAnalysis() {
             };
 
             const stData = calcSuperTrend(k.highs, k.lows, k.closes);
-            const adxValue = calcADX(k.highs, k.lows, k.closes);
+            const adxVal = calcADX(k.highs, k.lows, k.closes);
 
             state.signals[s] = {
-                ut: calcUTBot(k.highs, k.lows, k.closes),
                 st: stData.signal,
                 stPrice: stData.price,
-                qqe: calcQQEMod(k.closes),
-                adxStrong: adxValue >= CONFIG.adx.threshold
+                adxStrong: adxVal >= CONFIG.adx.threshold
             };
             renderSignals();
-        } catch(e) { console.error('Erreur:', e); }
+        } catch(e) { console.error("Erreur Binance:", e); }
     }
 }
 
 function renderSignals() {
-    const container = document.getElementById('signals-container');
+    const container = document.getElementById("signals-container");
+    if(!container) return;
     container.innerHTML = CONFIG.pairs.map(s => {
         const sig = state.signals[s];
-        if (!sig) return '';
-
-        const score = (sig.ut === 'bull' ? 1 : 0) + (sig.st === 'bull' ? 1 : 0) + (sig.qqe === 'bull' ? 1 : 0);
-        
-        // Validation : Score 2/3 ET ADX > 20
-        const isBuy = score >= 2 && sig.adxStrong;
+        if (!sig) return "";
+        const isBuy = sig.st === "bull" && sig.adxStrong;
 
         return `
             <div class="crypto-card">
                 <div class="card-info">
                     <span class="pair-name">${s}</span>
-                    <span class="live-price">${state.livePrices[s] || '...'} $</span>
+                    <span class="live-price">${state.livePrices[s] || "..."} $</span>
                 </div>
                 <div class="verdict ${isBuy ? 'buy' : 'out'}">
-                    ${isBuy ? "J'ACHÈTE" : 'HORS MARCHÉ'}
+                    ${isBuy ? "J'ACHÈTE" : "HORS MARCHÉ"}
                 </div>
-                ${isBuy ? `<div class="entry-price">PRIX D'ACHAT : ${sig.stPrice.toFixed(2)} $</div>` : ''}
+                ${isBuy ? `<div class="entry-price" style="color: #f6465d; font-weight: bold; margin-top: 10px;">PRIX D'ACHAT : ${sig.stPrice.toFixed(2)} $</div>` : ""}
             </div>`;
-    }).join('');
+    }).join("");
 }
 
-// — INIT —
-function initApp() {
-    const sel = document.getElementById('signal-tf-select');
-    sel.innerHTML = '';
-    CONFIG.timeframes.forEach(t => sel.add(new Option(t.label, t.value)));
-    sel.value = state.selectedTf;
-    sel.onchange = (e) => { state.selectedTf = e.target.value; startAnalysis(); };
+// Gestion des événements pour Mobile
+document.addEventListener("DOMContentLoaded", () => {
+    // Bouton Login
+    const loginBtn = document.querySelector(".auth-btn");
+    if(loginBtn) {
+        loginBtn.addEventListener("click", async () => {
+            const email = document.getElementById("login-email").value;
+            const password = document.getElementById("login-pwd").value;
+            const { error } = await sbClient.auth.signInWithPassword({ email, password });
+            if(error) alert("Erreur : " + error.message);
+        });
+    }
 
-    startAnalysis();
-    setInterval(startAnalysis, 60000); // Analyse toutes les minutes
-}
+    // Changement de Timeframe
+    const tfSelect = document.getElementById("signal-tf-select");
+    if(tfSelect) {
+        tfSelect.addEventListener("change", (e) => {
+            state.selectedTf = e.target.value;
+            startAnalysis();
+        });
+    }
+});
 
-// Surveillance Auth Supabase
+// Écouteur de session Supabase
 sbClient.auth.onAuthStateChange((event, session) => {
+    const authScreen = document.getElementById("auth-screen");
+    const mainApp = document.getElementById("main-app");
     if (session) {
-        document.getElementById('auth-screen').style.display = 'none';
-        document.getElementById('main-app').style.display = 'block';
-        initApp();
+        authScreen.style.display = "none";
+        mainApp.style.display = "block";
+        startAnalysis();
+    } else {
+        authScreen.style.display = "flex";
+        mainApp.style.display = "none";
     }
 });
