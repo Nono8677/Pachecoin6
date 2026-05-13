@@ -1,13 +1,12 @@
 <!DOCTYPE html>
-
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PACHECOIN - Assistant d'Analyse</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="app.js" defer></script>
 </head>
 <body>
 
@@ -40,30 +39,27 @@
         <button id="logout-btn" onclick="handleLogout()">Déconnexion</button>
     </header>
 
-```
-<nav class="tabs">
-    <button class="nav-tab active" data-tab="tab-signals">📊 Signaux</button>
-    <button class="nav-tab" data-tab="tab-portfolio">💼 Portfolio</button>
-</nav>
+    <nav class="tabs">
+        <button class="nav-tab active" data-tab="tab-signals">📊 Signaux</button>
+        <button class="nav-tab" data-tab="tab-portfolio">💼 Portfolio</button>
+    </nav>
 
-<main>
-    <section id="tab-signals" class="tab-content active">
-        <div class="controls">
-            <button id="refresh-btn" onclick="startAnalysis()">↻</button>
-            <select id="signal-tf-select"></select>
-        </div>
-        <div id="signals-container"></div>
-    </section>
-    <section id="tab-portfolio" class="tab-content">
-        <div id="portfolio-container"></div>
-    </section>
-</main>
+    <main>
+        <section id="tab-signals" class="tab-content active">
+            <div class="controls">
+                <button id="refresh-btn">↻</button>
+                <select id="signal-tf-select"></select>
+            </div>
+            <div id="signals-container"></div>
+        </section>
+        <section id="tab-portfolio" class="tab-content">
+            <div id="portfolio-container"></div>
+        </section>
+    </main>
 
-<footer>
-    <p class="warning-text">⚠️ PACHECOIN est un outil d'aide à l'analyse personnelle. Risque de perte en capital.</p>
-</footer>
-```
-
+    <footer>
+        <p class="warning-text">⚠️ PACHECOIN est un outil d'aide à l'analyse personnelle.</p>
+    </footer>
 </div>
 
 </body>
