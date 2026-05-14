@@ -1,25 +1,19 @@
-// --- CONFIGURATION & CLIENTS ---
+// --- CONFIGURATION V12 ---
 const SUPABASE_URL = "https://cbeucdnkixjhqzdazyxw.supabase.co";
-const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // Garde tes clés
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // Remets ta clé ici
 const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 const BINANCE_BASE = "https://api.binance.com/api/v3";
 
 const CONFIG = {
     pairs: ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT"],
-    fees: 0.001,           // 0.1% commissions
-    slippage: 0.0005,      // 0.05% slippage
-    maxGlobalExposure: 0.6, // 60% du capital max investi
-    riskPerTrade: 0.02,    // 2% de risque par position
-    adx: { period: 14 },
-    supertrend: { period: 10, multiplier: 3 }
+    fees: 0.001, slippage: 0.0005,
+    maxGlobalExposure: 0.6, equity: 1000,
+    adx: { p: 14, t: 20 },
+    st: { p: 10, m: 3 }
 };
 
 let state = {
-    signals: {},
-    livePrices: {},
-    selectedTf: "4h",
-    equity: 1000, // Capital fictif de départ pour le calcul du risque
-    // POIDS V12 - Calibrés par régime
+    signals: {}, livePrices: {}, selectedTf: "4h",
     weights: {
         TREND:   { w_s: 1.8, w_m: 1.2, w_f: 0.8, bias: -2.0 },
         CHOP:    { w_s: 0.4, w_m: 0.9, w_f: 1.6, bias: -1.2 },
@@ -27,105 +21,95 @@ let state = {
     }
 };
 
-// --- MOTEUR QUANT V12 ---
+// --- MOTEUR TECHNIQUE (ATR, ADX, ST, BB) ---
+const getATR = (h, l, c, p) => {
+    let tr = c.map((v, i) => i === 0 ? 0 : Math.max(h[i]-l[i], Math.abs(h[i]-c[i-1]), Math.abs(l[i]-c[i-1])));
+    let res = new Array(c.length).fill(0);
+    let sum = 0; for (let i = 1; i <= p; i++) sum += tr[i];
+    res[p] = sum / p;
+    for (let i = p+1; i < c.length; i++) res[i] = (res[i-1] * (p-1) + tr[i]) / p;
+    return res;
+};
 
-function getRegimeProbas(adx, bbWidth) {
-    let pTrend = Math.min(1, adx / 50);
-    let pSqueeze = Math.max(0, 1 - (bbWidth * 25));
-    let pChop = 1 - Math.max(pTrend, pSqueeze);
-    const total = pTrend + pSqueeze + pChop;
-    return { TREND: pTrend/total, CHOP: pChop/total, SQUEEZE: pSqueeze/total };
-}
+const calcADX = (h, l, c) => {
+    let p = CONFIG.adx.p, atr = getATR(h, l, c, p);
+    let up = h.map((v, i) => i === 0 ? 0 : v - h[i-1]), dw = l.map((v, i) => i === 0 ? 0 : l[i-1] - v);
+    let pDM = up.map((v, i) => (v > dw[i] && v > 0) ? v : 0), mDM = dw.map((v, i) => (dw[i] > v && dw[i] > 0) ? dw[i] : 0);
+    let pDI = 100 * (pDM[c.length-2] / (atr[c.length-2] || 1)), mDI = 100 * (mDM[c.length-2] / (atr[c.length-2] || 1));
+    return (100 * Math.abs(pDI - mDI) / (pDI + mDI + 0.001));
+};
 
-function getBlendedInference(features, probas) {
-    const calc = (w) => 1 / (1 + Math.exp(-(w.w_s * features.s + w.w_m * features.m + w.w_f * features.f + w.bias)));
-    return (calc(state.weights.TREND) * probas.TREND) +
-           (calc(state.weights.CHOP) * probas.CHOP) +
-           (calc(state.weights.SQUEEZE) * probas.SQUEEZE);
-}
+const calcST = (h, l, c) => {
+    let p = CONFIG.st.p, m = CONFIG.st.m, atr = getATR(h, l, c, p);
+    let ub = 0, lb = 0, dir = 1;
+    for (let i = p; i < c.length; i++) {
+        let hl2 = (h[i] + l[i]) / 2, bUb = hl2 + m * atr[i], bLb = hl2 - m * atr[i];
+        ub = (bUb < ub || c[i-1] > ub) ? bUb : ub;
+        lb = (bLb > lb || c[i-1] < lb) ? bLb : lb;
+        dir = (c[i] > ub) ? -1 : (c[i] < lb ? 1 : dir);
+    }
+    return { isBull: dir === -1 };
+};
 
-// --- ANALYSE & DÉCISION ---
+const getBBW = (c) => {
+    let p = 20, slice = c.slice(-p);
+    let avg = slice.reduce((a, b) => a + b) / p;
+    let std = Math.sqrt(slice.map(x => Math.pow(x - avg, 2)).reduce((a, b) => a + b) / p);
+    return (4 * std) / avg;
+};
 
+// --- LOGIQUE QUANT V12 ---
+const getProbas = (adx, bbW) => {
+    let pT = Math.min(1, adx / 50), pS = Math.max(0, 1 - (bbW * 25));
+    let pC = 1 - Math.max(pT, pS), tot = pT + pS + pC;
+    return { TREND: pT/tot, CHOP: pC/tot, SQUEEZE: pS/tot };
+};
+
+const infer = (f, p) => {
+    const sig = (w) => 1 / (1 + Math.exp(-(w.w_s * f.s + w.w_m * f.m + w.w_f * f.f + w.bias)));
+    return (sig(state.weights.TREND) * p.TREND) + (sig(state.weights.CHOP) * p.CHOP) + (sig(state.weights.SQUEEZE) * p.SQUEEZE);
+};
+
+// --- EXECUTION ---
 async function startAnalysis() {
-    const statusEl = document.getElementById("last-update");
-    if(statusEl) statusEl.innerText = "Calcul Quant V12...";
-
-    let currentExposure = 0; // Simulation d'exposition pour le risk-check
+    document.getElementById("last-update").innerText = "Calcul V12...";
+    let currentExp = 0;
 
     for (const s of CONFIG.pairs) {
         try {
-            const r = await fetch(`${BINANCE_BASE}/klines?symbol=${s}&interval=${state.selectedTf}&limit=100`);
-            const raw = await r.json();
-            const d = raw.slice(0, raw.length - 1);
-            
-            const k = {
-                h: d.map(x => parseFloat(x[2])),
-                l: d.map(x => parseFloat(x[3])),
-                c: d.map(x => parseFloat(x[4])),
-                v: d.map(x => parseFloat(x[5]))
-            };
+            const res = await fetch(`${BINANCE_BASE}/klines?symbol=${s}&interval=${state.selectedTf}&limit=100`);
+            const raw = await res.json();
+            const d = raw.slice(0, -1);
+            const k = { h: d.map(x=>+x[2]), l: d.map(x=>+x[3]), c: d.map(x=>+x[4]) };
 
-            // 1. Détection du contexte
-            const adxVal = calcADX(k.h, k.l, k.c);
-            const bb = getBollingerWidth(k.c);
-            const probas = getRegimeProbas(adxVal, bb);
-            
-            // 2. Inférence (Le cerveau V12)
-            const st = calcSuperTrend(k.h, k.l, k.c);
-            const features = { 
-                s: st.isBull ? 1 : 0, 
-                m: adxVal / 100, 
-                f: k.c[k.c.length-1] > k.c[k.c.length-2] ? 1 : 0 
-            };
-            const finalProb = getBlendedInference(features, probas);
+            const adx = calcADX(k.h, k.l, k.c), bbw = getBBW(k.c), st = calcST(k.h, k.l, k.c);
+            const probas = getProbas(adx, bbw);
+            const feat = { s: st.isBull?1:0, m: adx/100, f: k.c.slice(-1)[0] > k.c.slice(-2)[0]?1:0 };
+            const prob = infer(feat, probas);
 
-            // 3. Risk Management & Friction
-            const entryWithFriction = lastPrice(k.c) * (1 + CONFIG.slippage);
-            const isPortfolioSafe = (currentExposure / state.equity) < CONFIG.maxGlobalExposure;
-
+            const isSafe = (currentExp / CONFIG.equity) < CONFIG.maxGlobalExposure;
             state.signals[s] = {
-                prob: finalProb,
+                prob, isBuy: prob > 0.72 && isSafe,
                 regime: Object.keys(probas).reduce((a, b) => probas[a] > probas[b] ? a : b),
-                isBuy: finalProb > 0.72 && isPortfolioSafe,
-                entry: entryWithFriction,
-                reason: isPortfolioSafe ? "" : "RISQUE MAX ATTEINT"
+                entry: k.c.slice(-1)[0] * (1 + CONFIG.slippage),
+                reason: isSafe ? "" : "RISQUE MAX"
             };
-
         } catch(e) { console.error(s, e); }
     }
-    renderSignals();
-    if(statusEl) statusEl.innerText = "V12 Active : " + new Date().toLocaleTimeString();
+    renderUI();
 }
 
-// --- RENDU UI AMÉLIORÉ ---
-
-function renderSignals() {
-    const container = document.getElementById("signals-container");
-    if(!container) return;
-    
-    container.innerHTML = CONFIG.pairs.map(s => {
-        const sig = state.signals[s];
-        if (!sig) return "";
-        
+function renderUI() {
+    const cont = document.getElementById("signals-container");
+    cont.innerHTML = CONFIG.pairs.map(s => {
+        const sig = state.signals[s]; if(!sig) return "";
         return `
-            <div class="crypto-card">
-                <div class="card-info">
-                    <span class="pair-name">${s}</span>
-                    <span class="regime-tag">${sig.regime}</span>
-                </div>
-                <div class="verdict ${sig.isBuy ? 'buy' : 'out'}">
-                    ${sig.isBuy ? "BUY SIGNAL" : "WAIT / NEUTRAL"}
-                </div>
-                <div class="prob-bar-container">
-                    <div class="prob-bar" style="width: ${sig.prob * 100}%"></div>
-                </div>
-                <div class="details">
-                    Probabilité: ${(sig.prob * 100).toFixed(1)}% <br>
-                    ${sig.isBuy ? `Entrée (Friction incl.): <b>${sig.entry.toFixed(2)}</b>` : `<small>${sig.reason}</small>`}
-                </div>
-            </div>`;
+        <div class="crypto-card">
+            <div style="display:flex;justify:space-between"><b>${s}</b> <span>${sig.regime}</span></div>
+            <div class="verdict ${sig.isBuy?'buy':'out'}">${sig.isBuy?'ACHAT':'ATTENTE'}</div>
+            <div style="background:#eee;height:4px;margin:8px 0"><div style="background:#2ebd85;height:100%;width:${sig.prob*100}%"></div></div>
+            <small>${(sig.prob*100).toFixed(1)}% | ${sig.isBuy?sig.entry.toFixed(2):sig.reason}</small>
+        </div>`;
     }).join("");
+    document.getElementById("last-update").innerText = "MàJ: " + new Date().toLocaleTimeString();
 }
-
-// --- RESTE DES FONCTIONS (ADX, Supertrend, etc.) ---
-// Utilise tes fonctions existantes pour le calcul technique pur.
